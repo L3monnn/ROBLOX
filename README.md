@@ -1,2 +1,5 @@
-# RobloxScripts
-This is where I publish my Roblox scripts.
+- 👋 Hi, I’m @L3monnn
+- 👀 I’m interested in making roblox scripts
+- 🌱 I’m currently learning how to make roblox scripts
+- 💞️ I’m looking to collaborate on making roblox scripts
+- 📫 To reach me, add me on discord, my user is .lemonnn
