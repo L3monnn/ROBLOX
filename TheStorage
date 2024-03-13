@@ -153,7 +153,8 @@ MainSection:CreateToggle("Key AutoFarm", function(value)
 end)
 
 MainSection:CreateButton("Safe Spot", function()
-    local onTopOfSkyPartPosition = game.Workspace:FindFirstChild("SkyPlaceThatIsCool").CFrame + Vector3.new(0, skyPart.Size.Y/2 + 5, 0)
+    local skyPart = game.Workspace:FindFirstChild("SkyPlaceThatIsCool")
+    local onTopOfSkyPartPosition = skyPart.CFrame + Vector3.new(0, skyPart.Size.Y/2 + 5, 0)
     character.HumanoidRootPart.CFrame = CFrame.new(onTopOfSkyPartPosition)
 end)
 
