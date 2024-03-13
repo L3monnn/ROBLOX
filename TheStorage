@@ -7,6 +7,8 @@ local ExtraSection = MainWindow:NewSection("Extra")
 
 getgenv().AutoFarm = false
 getgenv().KeyAutoFarm = false
+getgenv().ItemNumber = 0
+getgenv().NumberWord = nil
 
 local player = game.Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
@@ -147,6 +149,37 @@ end
 
 SafePlace()
 
+local function NumbersToWords(ItemNumber)
+    if ItemNumber = 1 or 2 or 3 or 4 or 5 or 6 or 7 or 8 or 9 or 10 or 11 or 12 then
+        if ItemNumber == 1 then
+            NumberWord = "One"
+        elseif ItemNumber == 2 then
+            NumberWord = "Two"
+        elseif ItemNumber == 3 then
+            NumberWord = "Three"
+        elseif ItemNumber == 4 then
+            NumberWord = "Four"
+        elseif ItemNumber == 5 then
+            NumberWord = "Five"
+        elseif ItemNumber == 6 then
+            NumberWord = "Six"
+        elseif ItemNumber == 7 then
+            NumberWord = "Seven"
+        elseif ItemNumber == 8 then
+            NumberWord = "Eight"
+        elseif ItemNumber == 9 then
+            NumberWord = "Nine"
+        elseif ItemNumber == 10 then
+            NumberWord = "Ten"
+        elseif ItemNumber == 11 then
+            NumberWord = "Eleven"
+        elseif ItemNumber == 12 then
+            NumberWord = "Twelve"
+        end
+        return NumberWord
+    end
+end
+
 MainSection:CreateToggle("AutoFarm", function(value)
     AutoFarm = value
     StorageAutoFarm()
@@ -163,4 +196,29 @@ end)
 
 MainSection:CreateButton("Debug", function()
     loadstring(game:HttpGet('https://raw.githubusercontent.com/L3monnn/RobloxScripts/Games/TheStorage'))()
+end)
+
+ExtraSection:CreateButton("Bank Item in Hand", function()
+    local args = {
+        [1] = "StoreBank",
+        [2] = NumberWord,
+        [3] = ""
+    }
+    
+    game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvent"):FireServer(unpack(args))  
+end)
+
+ExtraSection:CreateButton("Withdraw From Bank", function()
+    local args = {
+        [1] = "TakeBank",
+        [2] = NumberWord,
+        [3] = ""
+    }
+    
+    game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvent"):FireServer(unpack(args))    
+end)
+
+ExtraSection:CreateTextbox("Slot 1 - 12", function(text)
+    ItemNumber = text
+    NumbersToWords(ItemNumber)
 end)
