@@ -6,7 +6,6 @@ local MainSection = MainWindow:NewSection("Main")
 
 getgenv().AutoFarm = false
 getgenv().KeyAutoFarm = false
-getgenv().ItemAutoFarm = "false"
 
 local player = game.Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
@@ -32,42 +31,69 @@ local function StorageAutoFarm()
                                 if loot then
                                     for _, item in pairs(loot:GetDescendants()) do
                                         if item:IsA("ProximityPrompt") then
-                                            if ItemAutoFarm == "false" then
-                                                if item.Parent:IsA("Part") or item.Parent:IsA("MeshPart") then
-                                                    character.HumanoidRootPart.CFrame = item.Parent.CFrame
-                                                    local Itemprompt = item
-                                                    if Itemprompt then
+                                            if item.Parent:IsA("Part") or item.Parent:IsA("MeshPart") then
+                                                character.HumanoidRootPart.CFrame = item.Parent.CFrame
+                                                local Itemprompt = item
+                                                if Itemprompt then
+                                                wait(0.1)
+                                                fireproximityprompt(Itemprompt)
+                                                wait(0.2)
+                                                end
+                                            elseif item.Parent:IsA("Model") then
+                                                character.HumanoidRootPart.CFrame = item.Parent.PrimaryPart.CFrame
+                                                local Itemprompt = item
+                                                if prompt then
                                                     wait(0.1)
                                                     fireproximityprompt(Itemprompt)
                                                     wait(0.2)
-                                                    end
-                                                elseif item.Parent:IsA("Model") then
-                                                    character.HumanoidRootPart.CFrame = item.Parent.PrimaryPart.CFrame
-                                                    local Itemprompt = item
-                                                    if prompt then
-                                                        wait(0.1)
-                                                        fireproximityprompt(Itemprompt)
-                                                        wait(0.2)
                                                 end
-                                            else
-                                                if item.Parent.Name == ItemAutoFarm then
-                                                    if item.Parent:IsA("Part") or item.Parent:IsA("MeshPart") then
-                                                        character.HumanoidRootPart.CFrame = item.Parent.CFrame
-                                                        local Itemprompt = item
-                                                        if Itemprompt then
-                                                        wait(0.1)
-                                                        fireproximityprompt(Itemprompt)
-                                                        wait(0.2)
-                                                        end
-                                                    elseif item.Parent:IsA("Model") then
-                                                        character.HumanoidRootPart.CFrame = item.Parent.PrimaryPart.CFrame
-                                                        local Itemprompt = item
-                                                        if prompt then
-                                                            wait(0.1)
-                                                            fireproximityprompt(Itemprompt)
-                                                            wait(0.2)
-                                                        end
-                                                    end
+                                            end
+                                        end
+                                    end
+                                end
+                            end
+                        end
+                    end
+                end
+        end
+        wait()
+    end
+end
+
+local function KeyStorageAutoFarm()
+    while KeyAutoFarm == true do
+        for _, storage in pairs(storages:GetChildren()) do
+            if KeyAutoFarm == false then break end
+                if storage:IsA("Model") then
+                    local handle = storage.Door:FindFirstChild("Handle")
+                    if handle.Parent:FindFirstChild("Lock") then
+                        character.HumanoidRootPart.CFrame = handle.CFrame
+                        local prompt = handle:FindFirstChildWhichIsA("ProximityPrompt")
+                        if prompt then
+                        task.wait(0.5)
+                        fireproximityprompt(prompt)
+                        task.wait(1)
+                            local contents = storage:FindFirstChild("Contents")
+                            if contents then
+                                local loot = contents:FindFirstChild("Loot")
+                                if loot then
+                                    for _, item in pairs(loot:GetDescendants()) do
+                                        if item:IsA("ProximityPrompt") then
+                                            if item.Parent:IsA("Part") or item.Parent:IsA("MeshPart") then
+                                                character.HumanoidRootPart.CFrame = item.Parent.CFrame
+                                                local Itemprompt = item
+                                                if Itemprompt then
+                                                wait(0.1)
+                                                fireproximityprompt(Itemprompt)
+                                                wait(0.2)
+                                                end
+                                            elseif item.Parent:IsA("Model") then
+                                                character.HumanoidRootPart.CFrame = item.Parent.PrimaryPart.CFrame
+                                                local Itemprompt = item
+                                                if prompt then
+                                                    wait(0.1)
+                                                    fireproximityprompt(Itemprompt)
+                                                    wait(0.2)
                                                 end
                                             end
                                         end
@@ -87,8 +113,9 @@ MainSection:CreateToggle("AutoFarm", function(value)
     StorageAutoFarm()
 end)
 
-MainSection:CreateTextbox("Item to Farm", function(text)
-    ItemAutoFarm = text
+MainSection:CreateToggle("Key AutoFarm", function(value)
+    KeyAutoFarm = value
+    KeyStorageAutoFarm()
 end)
 
 MainSection:CreateButton("Debug", function()
