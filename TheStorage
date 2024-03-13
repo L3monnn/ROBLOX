@@ -128,5 +128,5 @@ MainSection:CreateToggle("KeyAutoFarm", function(value)
 end)
 
 MainSection:CreateButton("Debug", function()
-    print("HI")
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/L3monnn/RobloxScripts/Games/TheStorage"))()
 end)
