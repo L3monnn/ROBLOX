@@ -49,7 +49,7 @@ local function StorageAutoFarm()
                                                         fireproximityprompt(Itemprompt)
                                                         wait(0.2)
                                                 end
-                                            elseif ItemAutoFarm ~= "false" then
+                                            else
                                                 if item.Parent.Name == ItemAutoFarm then
                                                     if item.Parent:IsA("Part") or item.Parent:IsA("MeshPart") then
                                                         character.HumanoidRootPart.CFrame = item.Parent.CFrame
