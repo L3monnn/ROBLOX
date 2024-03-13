@@ -151,7 +151,10 @@ end
 SafePlace()
 
 local function NumbersToWords(ItemNumber)
-    if ItemNumber == 1 or 2 or 3 or 4 or 5 or 6 or 7 or 8 or 9 or 10 or 11 or 12 then
+    ItemNumber = tonumber(ItemNumber)
+    NumberWord = ""
+
+    if ItemNumber then
         if ItemNumber == 1 then
             NumberWord = "One"
         elseif ItemNumber == 2 then
@@ -176,9 +179,14 @@ local function NumbersToWords(ItemNumber)
             NumberWord = "Eleven"
         elseif ItemNumber == 12 then
             NumberWord = "Twelve"
+        else
+            NumberWord = "Invalid number"
         end
-        return NumberWord
+    else
+        NumberWord = "Invalid input"
     end
+
+    return NumberWord
 end
 
 MainSection:CreateToggle("AutoFarm", function(value)
