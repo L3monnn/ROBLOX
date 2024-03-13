@@ -7,8 +7,9 @@ local ExtraSection = MainWindow:NewSection("Extra")
 
 getgenv().AutoFarm = false
 getgenv().KeyAutoFarm = false
-getgenv().ItemNumber = 0
+getgenv().ItemNumber = 1
 getgenv().NumberWord = nil
+getgenv().AmountBank = nil
 
 local player = game.Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
@@ -202,7 +203,7 @@ ExtraSection:CreateButton("Bank Item in Hand", function()
     local args = {
         [1] = "StoreBank",
         [2] = NumberWord,
-        [3] = ""
+        [3] = AmountBank
     }
     
     game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvent"):FireServer(unpack(args))  
@@ -212,7 +213,7 @@ ExtraSection:CreateButton("Withdraw From Bank", function()
     local args = {
         [1] = "TakeBank",
         [2] = NumberWord,
-        [3] = ""
+        [3] = AmountBank
     }
     
     game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvent"):FireServer(unpack(args))    
@@ -221,4 +222,8 @@ end)
 ExtraSection:CreateTextbox("Slot 1 - 12", function(text)
     ItemNumber = text
     NumbersToWords(ItemNumber)
+end)
+
+ExtraSection:CreateTextbox("Amount", function(text)
+    AmountBank = text
 end)
