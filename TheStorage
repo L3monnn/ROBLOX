@@ -6,8 +6,7 @@ local MainSection = MainWindow:NewSection("Main")
 
 getgenv().AutoFarm = false
 getgenv().KeyAutoFarm = false
-getgenv().SpecificAutoFarm = false
-getgenv().ItemAutoFarm = {}
+getgenv().ItemAutoFarm = "false"
 
 local player = game.Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
@@ -33,21 +32,42 @@ local function StorageAutoFarm()
                                 if loot then
                                     for _, item in pairs(loot:GetDescendants()) do
                                         if item:IsA("ProximityPrompt") then
-                                            if item.Parent:IsA("Part") or item.Parent:IsA("MeshPart") then
-                                                character.HumanoidRootPart.CFrame = item.Parent.CFrame
-                                                local Itemprompt = item
-                                                if Itemprompt then
-                                                wait(0.1)
-                                                fireproximityprompt(Itemprompt)
-                                                wait(0.2)
-                                                end
-                                            elseif item.Parent:IsA("Model") then
-                                                character.HumanoidRootPart.CFrame = item.Parent.PrimaryPart.CFrame
-                                                local Itemprompt = item
-                                                if prompt then
+                                            if ItemAutoFarm == "false" then
+                                                if item.Parent:IsA("Part") or item.Parent:IsA("MeshPart") then
+                                                    character.HumanoidRootPart.CFrame = item.Parent.CFrame
+                                                    local Itemprompt = item
+                                                    if Itemprompt then
                                                     wait(0.1)
                                                     fireproximityprompt(Itemprompt)
                                                     wait(0.2)
+                                                    end
+                                                elseif item.Parent:IsA("Model") then
+                                                    character.HumanoidRootPart.CFrame = item.Parent.PrimaryPart.CFrame
+                                                    local Itemprompt = item
+                                                    if prompt then
+                                                        wait(0.1)
+                                                        fireproximityprompt(Itemprompt)
+                                                        wait(0.2)
+                                                end
+                                            else ItemAutoFarm ~= "false" then
+                                                if item.Parent.Name == ItemAutoFarm then
+                                                    if item.Parent:IsA("Part") or item.Parent:IsA("MeshPart") then
+                                                        character.HumanoidRootPart.CFrame = item.Parent.CFrame
+                                                        local Itemprompt = item
+                                                        if Itemprompt then
+                                                        wait(0.1)
+                                                        fireproximityprompt(Itemprompt)
+                                                        wait(0.2)
+                                                        end
+                                                    elseif item.Parent:IsA("Model") then
+                                                        character.HumanoidRootPart.CFrame = item.Parent.PrimaryPart.CFrame
+                                                        local Itemprompt = item
+                                                        if prompt then
+                                                            wait(0.1)
+                                                            fireproximityprompt(Itemprompt)
+                                                            wait(0.2)
+                                                        end
+                                                    end
                                                 end
                                             end
                                         end
@@ -116,15 +136,15 @@ MainSection:CreateToggle("AutoFarm", function(value)
     StorageAutoFarm()
 end)
 
+MainSection:CreateTextbox("Item to Farm", function(text)
+    ItemAutoFarm = text
+end)
+
 MainSection:CreateToggle("Key AutoFarm", function(value)
     KeyAutoFarm = value
     KeyStorageAutoFarm()
 end)
 
-MainSection:CreateButton("Specific AutoFarm", function()
-    print("Hi")
-end)
-
 MainSection:CreateButton("Debug", function()
-    print("HI")
+    loadstring(game:HttpGet('https://raw.githubusercontent.com/L3monnn/RobloxScripts/Games/TheStorage'))()
 end)
