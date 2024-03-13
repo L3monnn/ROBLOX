@@ -8,7 +8,7 @@ local ExtraSection = MainWindow:NewSection("Extra")
 getgenv().AutoFarm = false
 getgenv().KeyAutoFarm = false
 getgenv().ItemNumber = 0
-getgenv().NumberWord = ""
+getgenv().NumberWord = "Zero"
 
 local player = game.Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
