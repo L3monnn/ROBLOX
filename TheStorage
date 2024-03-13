@@ -9,6 +9,7 @@ getgenv().AutoFarm = false
 getgenv().KeyAutoFarm = false
 getgenv().ItemNumber = 1
 getgenv().NumberWord = nil
+getgenv().FinalWord = nil
 getgenv().AmountBank = nil
 
 local player = game.Players.LocalPlayer
@@ -202,7 +203,7 @@ end)
 ExtraSection:CreateButton("Bank Item in Hand", function()
     local args = {
         [1] = "StoreBank",
-        [2] = NumberWord,
+        [2] = FinalWord,
         [3] = AmountBank
     }
     
@@ -212,7 +213,7 @@ end)
 ExtraSection:CreateButton("Withdraw From Bank", function()
     local args = {
         [1] = "TakeBank",
-        [2] = NumberWord,
+        [2] = FinalWord,
         [3] = AmountBank
     }
     
@@ -221,7 +222,7 @@ end)
 
 ExtraSection:CreateTextbox("Slot 1 - 12", function(text)
     ItemNumber = text
-    NumbersToWords(ItemNumber)
+    FinalWord = NumbersToWords(ItemNumber)
 end)
 
 ExtraSection:CreateTextbox("Amount", function(text)
