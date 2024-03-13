@@ -160,7 +160,7 @@ end)
 MainSection:CreateButton("Safe Spot", function()
     local skyPart = game.Workspace:FindFirstChild("SkyPlaceThatIsCool")
     local onTopOfSkyPartPosition = skyPart.Position + Vector3.new(0, skyPart.Size.Y/2 + 5, 0)
-    character.HumanoidRootPart.CFrame = Vector3.new(onTopOfSkyPartPosition)
+    character.HumanoidRootPart.CFrame = CFrame.new(onTopOfSkyPartPosition)
 end)
 
 MainSection:CreateButton("Debug", function()
