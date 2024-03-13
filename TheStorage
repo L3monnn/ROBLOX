@@ -1,12 +1,14 @@
 local Library = loadstring(Game:HttpGet("https://raw.githubusercontent.com/bloodball/-back-ups-for-libs/main/wizard"))()
 
-local MainWindow = Library:NewWindow("Combat")
+local MainWindow = Library:NewWindow("Lemon V1.3.2")
 
 local MainSection = MainWindow:NewSection("Main")
 
 getgenv().AutoFarm = false
 getgenv().KeyAutoFarm = false
--- Get the player and the character
+getgenv().SpecificAutoFarm = false
+getgenv().ItemAutoFarm = {}
+
 local player = game.Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 
@@ -15,13 +17,11 @@ local storages = workspace.Storages
 local function StorageAutoFarm()
     while AutoFarm == true do
         for _, storage in pairs(storages:GetChildren()) do
-            if AutoFarm == false then break
+            if AutoFarm == false then break end
                 if storage:IsA("Model") then
                     local handle = storage.Door:FindFirstChild("Handle")
                     if handle then
-                        print("found handle")
                         character.HumanoidRootPart.CFrame = handle.CFrame
-                        print("teleporting to handle")
                         local prompt = handle:FindFirstChildWhichIsA("ProximityPrompt")
                         if prompt then
                         task.wait(0.5)
@@ -57,7 +57,6 @@ local function StorageAutoFarm()
                         end
                     end
                 end
-            end
         end
         wait()
     end
@@ -66,41 +65,37 @@ end
 local function KeyStorageAutoFarm()
     while KeyAutoFarm == true do
         for _, storage in pairs(storages:GetChildren()) do
-            if KeyAutoFarm == false then break
+            if KeyAutoFarm == false then break end
                 if storage:IsA("Model") then
-                    if storage.Door.Lock then
-                        local handle = storage.Door:FindFirstChild("Handle")
-                        if handle then
-                            print("found handle")
-                            character.HumanoidRootPart.CFrame = handle.CFrame
-                            print("teleporting to handle")
-                            local prompt = handle:FindFirstChildWhichIsA("ProximityPrompt")
-                            if prompt then
-                            task.wait(0.5)
-                            fireproximityprompt(prompt)
-                            task.wait(1)
-                                local contents = storage:FindFirstChild("Contents")
-                                if contents then
-                                    local loot = contents:FindFirstChild("Loot")
-                                    if loot then
-                                        for _, item in pairs(loot:GetDescendants()) do
-                                            if item:IsA("ProximityPrompt") then
-                                                if item.Parent:IsA("Part") or item.Parent:IsA("MeshPart") then
-                                                    character.HumanoidRootPart.CFrame = item.Parent.CFrame
-                                                    local Itemprompt = item
-                                                    if Itemprompt then
+                    local handle = storage.Door:FindFirstChild("Handle")
+                    if handle then
+                        character.HumanoidRootPart.CFrame = handle.CFrame
+                        local prompt = handle:FindFirstChildWhichIsA("ProximityPrompt")
+                        if prompt then
+                        task.wait(0.5)
+                        fireproximityprompt(prompt)
+                        task.wait(1)
+                            local contents = storage:FindFirstChild("Contents")
+                            if contents then
+                                local loot = contents:FindFirstChild("Loot")
+                                if loot then
+                                    for _, Skull in pairs(loot:GetDescendants()) do
+                                        if Skull:IsA("ProximityPrompt") then
+                                            if Skull.Parent:IsA("Part") or Skull.Parent:IsA("MeshPart") then
+                                                character.HumanoidRootPart.CFrame = Skull.Parent.CFrame
+                                                local Skullprompt = Skull
+                                                if Skullprompt then
+                                                wait(0.1)
+                                                fireproximityprompt(Skullprompt)
+                                                wait(0.2)
+                                                end
+                                            elseif Skull.Parent:IsA("Model") then
+                                                character.HumanoidRootPart.CFrame = Skull.Parent.PrimaryPart.CFrame
+                                                local Skullprompt = Skull
+                                                if prompt then
                                                     wait(0.1)
-                                                    fireproximityprompt(Itemprompt)
+                                                    fireproximityprompt(Skullprompt)
                                                     wait(0.2)
-                                                    end
-                                                elseif item.Parent:IsA("Model") then
-                                                    character.HumanoidRootPart.CFrame = item.Parent.PrimaryPart.CFrame
-                                                    local Itemprompt = item
-                                                    if prompt then
-                                                        wait(0.1)
-                                                        fireproximityprompt(Itemprompt)
-                                                        wait(0.2)
-                                                    end
                                                 end
                                             end
                                         end
@@ -110,7 +105,6 @@ local function KeyStorageAutoFarm()
                         end
                     end
                 end
-            end
         end
         wait()
     end
@@ -122,11 +116,15 @@ MainSection:CreateToggle("AutoFarm", function(value)
     StorageAutoFarm()
 end)
 
-MainSection:CreateToggle("KeyAutoFarm", function(value)
+MainSection:CreateToggle("Key AutoFarm", function(value)
     KeyAutoFarm = value
     KeyStorageAutoFarm()
 end)
 
+MainSection:CreateButton("Specific AutoFarm", function()
+    print("Hi")
+end)
+
 MainSection:CreateButton("Debug", function()
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/L3monnn/RobloxScripts/Games/TheStorage"))()
+    print("HI")
 end)
