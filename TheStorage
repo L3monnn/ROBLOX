@@ -9,7 +9,7 @@ getgenv().AutoFarm = false
 getgenv().KeyAutoFarm = false
 getgenv().ItemNumber = 1
 getgenv().NumberWord = nil
-getgenv().FinalWord = nil
+local FinalWord = nil
 getgenv().AmountBank = nil
 
 local player = game.Players.LocalPlayer
@@ -222,7 +222,7 @@ end)
 
 ExtraSection:CreateTextbox("Slot 1 - 12", function(text)
     ItemNumber = text
-    FinalWord = NumbersToWords(ItemNumber)
+    local FinalWord = NumbersToWords(ItemNumber)
 end)
 
 ExtraSection:CreateTextbox("Amount", function(text)
