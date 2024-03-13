@@ -1,14 +1,17 @@
 local Library = loadstring(Game:HttpGet("https://raw.githubusercontent.com/bloodball/-back-ups-for-libs/main/wizard"))()
 
-local MainWindow = Library:NewWindow("Lemon V1.3.2")
+local MainWindow = Library:NewWindow("Lemon V1.5.4")
 
 local MainSection = MainWindow:NewSection("Main")
+local PromoSection = MainWindow:NewSection("@.lemonnn")
 
 getgenv().AutoFarm = false
 getgenv().KeyAutoFarm = false
 
 local player = game.Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
+local backpack = player:FindFirstChild("Backpack")
+local humanoid = character:FindFirstChildOfClass("Humanoid")
 
 local storages = workspace.Storages
 
@@ -60,6 +63,23 @@ local function StorageAutoFarm()
     end
 end
 
+local function equipSkeletonKey()
+    if character and backpack then
+        local skeletonKeyInCharacter = character:FindFirstChild("Skeleton Key")
+        local skeletonKeyInBackpack = backpack:FindFirstChild("Skeleton Key")
+
+        if not skeletonKeyInCharacter and skeletonKeyInBackpack and humanoid then
+            humanoid:EquipTool(skeletonKeyInBackpack)
+        elseif skeletonKeyInCharacter then
+            print("Skeleton Key is already equipped.")
+        else
+            print("Skeleton Key not found in the backpack.")
+        end
+    else
+        print("Character or Backpack not found.")
+    end
+end
+
 local function KeyStorageAutoFarm()
     while KeyAutoFarm == true do
         for _, storage in pairs(storages:GetChildren()) do
@@ -70,6 +90,7 @@ local function KeyStorageAutoFarm()
                         character.HumanoidRootPart.CFrame = handle.CFrame
                         local prompt = handle:FindFirstChildWhichIsA("ProximityPrompt")
                         if prompt then
+                        equipSkeletonKey()
                         task.wait(0.5)
                         fireproximityprompt(prompt)
                         task.wait(1)
@@ -108,6 +129,19 @@ local function KeyStorageAutoFarm()
     end
 end
 
+local function SafePlace()
+    local skyPart = Instance.new("Part")
+
+    skyPart.Name = "SkyPlaceThatIsCool"
+    skyPart.Size = Vector3.new(10, 1, 10) -- Size of the part
+    skyPart.Position = Vector3.new(0, 500, 0) -- Position in the sky
+    skyPart.Anchored = true -- Make sure the part doesn't fall
+    skyPart.BrickColor = BrickColor.new("Bright blue") -- Color of the part
+    skyPart.Parent = game.Workspace
+end
+
+SafePlace()
+
 MainSection:CreateToggle("AutoFarm", function(value)
     AutoFarm = value
     StorageAutoFarm()
@@ -116,6 +150,11 @@ end)
 MainSection:CreateToggle("Key AutoFarm", function(value)
     KeyAutoFarm = value
     KeyStorageAutoFarm()
+end)
+
+MainSection:CreateButton("Safe Spot", function()
+    local onTopOfSkyPartPosition = game.Workspace:FindFirstChild("SkyPlaceThatIsCool").CFrame + Vector3.new(0, skyPart.Size.Y/2 + 5, 0)
+    character.HumanoidRootPart.CFrame = CFrame.new(onTopOfSkyPartPosition)
 end)
 
 MainSection:CreateButton("Debug", function()
