@@ -82,55 +82,6 @@ local function StorageAutoFarm()
     end
 end
 
-local function KeyStorageAutoFarm()
-    while KeyAutoFarm == true do
-        for _, storage in pairs(storages:GetChildren()) do
-            if KeyAutoFarm == false then break end
-                if storage:IsA("Model") then
-                    local handle = storage.Door:FindFirstChild("Handle")
-                    if handle then
-                        character.HumanoidRootPart.CFrame = handle.CFrame
-                        local prompt = handle:FindFirstChildWhichIsA("ProximityPrompt")
-                        if prompt then
-                        task.wait(0.5)
-                        fireproximityprompt(prompt)
-                        task.wait(1)
-                            local contents = storage:FindFirstChild("Contents")
-                            if contents then
-                                local loot = contents:FindFirstChild("Loot")
-                                if loot then
-                                    for _, Skull in pairs(loot:GetDescendants()) do
-                                        if Skull:IsA("ProximityPrompt") then
-                                            if Skull.Parent:IsA("Part") or Skull.Parent:IsA("MeshPart") then
-                                                character.HumanoidRootPart.CFrame = Skull.Parent.CFrame
-                                                local Skullprompt = Skull
-                                                if Skullprompt then
-                                                wait(0.1)
-                                                fireproximityprompt(Skullprompt)
-                                                wait(0.2)
-                                                end
-                                            elseif Skull.Parent:IsA("Model") then
-                                                character.HumanoidRootPart.CFrame = Skull.Parent.PrimaryPart.CFrame
-                                                local Skullprompt = Skull
-                                                if prompt then
-                                                    wait(0.1)
-                                                    fireproximityprompt(Skullprompt)
-                                                    wait(0.2)
-                                                end
-                                            end
-                                        end
-                                    end
-                                end
-                            end
-                        end
-                    end
-                end
-        end
-        wait()
-    end
-end
-
-
 MainSection:CreateToggle("AutoFarm", function(value)
     AutoFarm = value
     StorageAutoFarm()
@@ -138,11 +89,6 @@ end)
 
 MainSection:CreateTextbox("Item to Farm", function(text)
     ItemAutoFarm = text
-end)
-
-MainSection:CreateToggle("Key AutoFarm", function(value)
-    KeyAutoFarm = value
-    KeyStorageAutoFarm()
 end)
 
 MainSection:CreateButton("Debug", function()
