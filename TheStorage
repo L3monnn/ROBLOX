@@ -3,6 +3,7 @@ local Library = loadstring(Game:HttpGet("https://raw.githubusercontent.com/blood
 local MainWindow = Library:NewWindow("Lemon V1.5.4")
 
 local MainSection = MainWindow:NewSection("Main")
+local BankSection = MainWindow:NewSection("Bank")
 local ExtraSection = MainWindow:NewSection("Extra")
 
 getgenv().AutoFarm = false
@@ -197,11 +198,18 @@ MainSection:CreateButton("Safe Spot", function()
     character.HumanoidRootPart.CFrame = CFrame.new(0, 105.5, 0)
 end)
 
-MainSection:CreateButton("Debug", function()
-    loadstring(game:HttpGet('https://raw.githubusercontent.com/L3monnn/RobloxScripts/Games/TheStorage'))()
+MainSection:CreateButton("TP Base", function()
+    for _, storage in pairs(storages:GetDescendants()) do
+        if storage:IsA("TextLabel") then
+            if storage.Text == player.Name.."'s Unit" then
+                character.CFrame = storage.Parent.Parent.Parent.Contents.BoundingBox.CFrame
+                break
+            end
+        end
+    end
 end)
 
-ExtraSection:CreateButton("Bank Item in Hand", function()
+BankSection:CreateButton("Bank Item in Hand", function()
     local args = {
         [1] = "StoreBank",
         [2] = NumberWord,
@@ -211,7 +219,7 @@ ExtraSection:CreateButton("Bank Item in Hand", function()
     game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvent"):FireServer(unpack(args))  
 end)
 
-ExtraSection:CreateButton("Withdraw From Bank", function()
+BankSection:CreateButton("Withdraw From Bank", function()
     local args = {
         [1] = "TakeBank",
         [2] = NumberWord,
@@ -221,11 +229,35 @@ ExtraSection:CreateButton("Withdraw From Bank", function()
     game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvent"):FireServer(unpack(args))    
 end)
 
-ExtraSection:CreateTextbox("Slot 1 - 12", function(text)
+BankSection:CreateTextbox("Slot 1 - 12", function(text)
     ItemNumber = text
     NumberWord = NumbersToWords(ItemNumber)
 end)
 
-ExtraSection:CreateTextbox("Amount", function(text)
+BankSection:CreateTextbox("Amount", function(text)
     AmountBank = text
+end)
+
+ExtraSection:CreateButton("Delete Roof", function()
+    local Roof = workspace.MapObjects.Roof
+    if Roof then
+        workspace.MapObjects.Roof:Destroy()
+    end
+
+    local ForceFieldFolder = workspace.Map.Parts.Model
+
+    for _, forcefield in pairs(ForceFieldFolder:GetDescendants()) do
+        if forcefield.Name == "Forcefield" then
+            forcefield:Destroy()
+            break
+        end
+    end
+end)
+
+ExtraSection:CreateButton("Infinite Yield", function()
+    loadstring(game:HttpGet('https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source'))()
+end)
+
+ExtraSection:CreateButton("Debug", function()
+    loadstring(game:HttpGet('https://raw.githubusercontent.com/L3monnn/RobloxScripts/Games/TheStorage'))()
 end)
