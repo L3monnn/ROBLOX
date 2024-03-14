@@ -89,7 +89,7 @@ local function KeyStorageAutoFarm()
             if KeyAutoFarm == false then break end
                 if storage:IsA("Model") then
                     local handle = storage.Door:FindFirstChild("Handle")
-                    if handle.Parent:FindFirstChild("Lock") then
+                    if handle.Parent:FindFirstChild("Lock") and storage.Barrier.CanCollide = true then
                         character.HumanoidRootPart.CFrame = handle.CFrame
                         local prompt = handle:FindFirstChildWhichIsA("ProximityPrompt")
                         if prompt then
@@ -109,6 +109,8 @@ local function KeyStorageAutoFarm()
                                                 if Itemprompt then
                                                 wait(0.3)
                                                 fireproximityprompt(Itemprompt)
+                                                wait(0.3)
+                                                character.HumanoidRootPart.CFrame = CFrame.new(0, 105.5, 0)
                                                 wait(0.3)
                                                 end
                                             end
