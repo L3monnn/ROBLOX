@@ -28,7 +28,7 @@ local function StorageAutoFarm()
                     local handle = storage.Door:FindFirstChild("Handle")
                     if handle then
                         local TeleportToo = CFrame.new(handle.CFrame.X, handle.CFrame.Y + 7, handle.CFrame.Z)
-                        character.HumanoidRootPart.CFrame = handle.CFrame
+                        character.HumanoidRootPart.CFrame = TeleportToo
                         local prompt = handle:FindFirstChildWhichIsA("ProximityPrompt")
                         if prompt then
                         task.wait(0.5)
