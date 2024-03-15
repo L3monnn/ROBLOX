@@ -11,6 +11,7 @@ getgenv().KeyAutoFarm = false
 getgenv().ItemNumber = 1
 getgenv().NumberWord = nil
 getgenv().AmountBank = nil
+getgenv().BaseFound = nil
 
 local player = game.Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
@@ -199,13 +200,8 @@ MainSection:CreateButton("Safe Spot", function()
 end)
 
 MainSection:CreateButton("TP Base", function()
-    for _, storage in pairs(storages:GetDescendants()) do
-        if storage:IsA("TextLabel") then
-            if storage.Text == player.Name.."'s Unit" then
-                character.CFrame = storage.Parent.Parent.Parent.Contents.BoundingBox.CFrame
-                break
-            end
-        end
+    if BaseFound ~= nil then
+        character.HumanoidRootPart.CFrame = BaseFound
     end
 end)
 
@@ -241,15 +237,45 @@ end)
 ExtraSection:CreateButton("Delete Roof", function()
     local Roof = workspace.MapObjects.Roof
     if Roof then
-        workspace.MapObjects.Roof:Destroy()
+        Roof.Transparency = 1
+        Roof.CanCollide = false
     end
 
     local ForceFieldFolder = workspace.Map.Parts.Model
 
-    for _, forcefield in pairs(ForceFieldFolder:GetDescendants()) do
-        if forcefield.Name == "Forcefield" then
-            forcefield:Destroy()
+    local index = 0
+    local indexMax = 1000
+
+    for i, forcefield in pairs(ForceFieldFolder:GetDescendants()) do
+        index = index + 1
+        if forcefield:IsA("Part") then
+            if forcefield.Name == "Forcefield" then
+                forcefield.CanCollide = false
+                print("Removed Roof")
+                break
+            end
+        else
+            print(index.." - "..forcefield.Name)
+        end
+        task.wait(0.01)
+        if index >= indexMax then
             break
+        end
+    end
+end)
+
+ExtraSection:CreateButton("Find Base", function()
+    if BaseFound == nil then
+        for _, storage in pairs(storages:GetDescendants()) do
+            if storage:IsA("TextLabel") then
+                print("found storage")
+                if storage.Text == player.Name.."'s Unit" then
+                    BaseFound = storage.Parent.Parent.Parent.Contents.BoundingBox.CFrame
+                    print("Base Found")
+                    break
+                end
+            end
+            task.wait()
         end
     end
 end)
