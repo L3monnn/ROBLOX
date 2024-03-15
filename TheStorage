@@ -96,7 +96,7 @@ local function KeyStorageAutoFarm()
                 if storage:IsA("Model") then
                     local handle = storage.Door:FindFirstChild("Handle")
                     if handle.Parent:FindFirstChild("Lock") and storage.Barrier.CanCollide == true then
-                        local TeleportTo = CFrame.new(handle.CFrame.X, handle.CFrame.Y + 4, handle.CFrame.Z)
+                        local TeleportTo = CFrame.new(handle.CFrame.X, handle.CFrame.Y + 8, handle.CFrame.Z)
                         character.HumanoidRootPart.CFrame = TeleportTo
                         local prompt = handle:FindFirstChildWhichIsA("ProximityPrompt")
                         if prompt then
