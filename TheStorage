@@ -91,7 +91,7 @@ local function KeyStorageAutoFarm()
             if KeyAutoFarm == false then break end
                 if storage:IsA("Model") then
                     local handle = storage.Door:FindFirstChild("Handle")
-                    if handle.Parent:FindFirstChild("Lock") and storage.Barrier.CanCollide = true then
+                    if handle.Parent:FindFirstChild("Lock") and storage.Barrier.CanCollide == true then
                         character.HumanoidRootPart.CFrame = handle.CFrame
                         local prompt = handle:FindFirstChildWhichIsA("ProximityPrompt")
                         if prompt then
@@ -199,7 +199,7 @@ MainSection:CreateButton("Safe Spot", function()
     character.HumanoidRootPart.CFrame = CFrame.new(0, 105.5, 0)
 end)
 
-MainSection:CreateButton("TP Base", function()
+MainSection:CreateButton("TP Base (activate in extra)", function()
     if BaseFound ~= nil then
         character.HumanoidRootPart.CFrame = BaseFound
     end
@@ -209,7 +209,7 @@ BankSection:CreateButton("Bank Item in Hand", function()
     local args = {
         [1] = "StoreBank",
         [2] = NumberWord,
-        [3] = AmountBank
+        [3] = '"'..AmountBank..'"'
     }
     
     game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvent"):FireServer(unpack(args))  
@@ -219,7 +219,7 @@ BankSection:CreateButton("Withdraw From Bank", function()
     local args = {
         [1] = "TakeBank",
         [2] = NumberWord,
-        [3] = AmountBank
+        [3] = '"'..AmountBank..'"'
     }
     
     game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvent"):FireServer(unpack(args))    
@@ -243,32 +243,24 @@ ExtraSection:CreateButton("Delete Roof", function()
 
     local ForceFieldFolder = workspace.Map.Parts.Model
 
-    local index = 0
-    local indexMax = 1000
-
-    for i, forcefield in pairs(ForceFieldFolder:GetDescendants()) do
-        index = index + 1
-        if forcefield:IsA("Part") then
-            if forcefield.Name == "Forcefield" then
-                forcefield.CanCollide = false
-                print("Removed Roof")
-                break
+    for _, model in pairs (ForceFieldFolder:GetChildren()) do
+        for i, forcefield in pairs(model:GetChildren()) do
+            if forcefield:IsA("Part") then
+                if forcefield.Name == "Forcefield" then
+                    forcefield.CanCollide = false
+                    print("Removed Roof")
+                    break
+                end
             end
-        else
-            print(index.." - "..forcefield.Name)
-        end
-        task.wait(0.01)
-        if index >= indexMax then
-            break
+            task.wait(0.00001)
         end
     end
 end)
 
-ExtraSection:CreateButton("Find Base", function()
+ExtraSection:CreateButton("Find Base (Takes a min)", function()
     if BaseFound == nil then
         for _, storage in pairs(storages:GetDescendants()) do
             if storage:IsA("TextLabel") then
-                print("found storage")
                 if storage.Text == player.Name.."'s Unit" then
                     BaseFound = storage.Parent.Parent.Parent.Contents.BoundingBox.CFrame
                     print("Base Found")
