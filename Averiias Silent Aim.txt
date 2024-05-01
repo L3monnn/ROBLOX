@@ -11,7 +11,7 @@ local SilentAimSettings = {
     Enabled = false,
     
     ClassName = "Universal Silent Aim - Averiias, Stefanuk12, xaxa",
-    ToggleKey = "RightAlt",
+    ToggleKey = "L",
     
     TeamCheck = false,
     VisibleCheck = false, 
