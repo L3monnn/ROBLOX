@@ -178,7 +178,7 @@ function UILibrary.Main(PrjName,HideKey)
 	local function update(input)
 		local delta = input.Position - dragStart
 		pcall(function()
-			Main:TweenPosition(UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y),"Out","Quad",0.1,true,nil)
+			Main:TweenPosition(UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y),"Out","Quad",0.01,true,nil)
 		end)
 	end
 	Main.InputBegan:Connect(function(input)
