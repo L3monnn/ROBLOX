@@ -1,4 +1,4 @@
-local TweenService = game:GetService("TweenService") -- Official Library: https://github.com/slf0Dev/Ocerium_Project
+local TweenService = game:GetService("TweenService") -- Modified version of the Official Library: https://github.com/slf0Dev/Ocerium_Project
 local RunService = game:GetService("RunService")
 local InputService = game:GetService("UserInputService")
 
