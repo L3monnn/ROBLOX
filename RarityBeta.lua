@@ -13,9 +13,9 @@ local SpawnsSection = RareTab.NewSection("Rare Item Spawns")
 local OresSection = RareTab.NewSection("Ore Spawns")
 local ChestsSection = RareTab.NewSection("Chest Spawns")
 --//labels
-local MineTutorialLabel = MineSection.NewLabel("made by .lemonnn", true)
-local MineTutorialLabel = MineSection.NewLabelWithComment("How to use", "You must mine any block before using automine!", true, nil, nil)
-local MineTutorialLabel = SellSection.NewLabelWithComment("How to use", "You must sell any block before using quick sell!", true, nil, nil)
+local MineTutorialLabel = HomeSection.NewLabel("made by .lemonnn", true)
+local MineTutorialLabel = MineSection.NewLabelWithComment("How to use", "You must mine any block before using automine!", false, nil, nil)
+local MineTutorialLabel = SellSection.NewLabelWithComment("How to use", "You must sell any block before using quick sell!", false, nil, nil)
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UserInputService = game:GetService("UserInputService")
@@ -35,18 +35,18 @@ local SequenceRemoteName = nil
 local QuickMineKeycode = nil
 local QuickSellKeycode = nil
 
+local MineButton = MineSection.NewToggle("Toggle Mine", function(value)
+    Window.Nofitication("AutoMine not working yet")
+end, false)
+
+local MineButton = MineSection.NewButton("Mine Allat", function()
+    print("Mined Allat")
+end)
+
 local SliderNotPrecise = MineSection.NewSlider("Mine Radius (in studs)", 12, 120, false, function(value)
     MineAuraRadius = value
     print(MineAuraRadius, value)
 end, 60)
-
-local MineButton = Section.NewToggle("Toggle Mine", function(value)
-    Window.Nofitication("AutoMine not working yet")
-end, false)
-
-local MineButton = Section.NewButton("Mine Allat", function()
-    print("Mined Allat")
-end)
 
 local KeyDropdownList = {
 	["0"] = 0x30,
