@@ -179,14 +179,17 @@ local function initCubes()
         if Object:IsA("Model") then
             Main[Object.Name] = Object
             task.spawn(function()
+                local DontDetect = false
+
                 if AutoMineBlocks then
-                    local distance = (Object.Main.Position - player.Character.HumanoidRootPart.Position).Magnitude
+                    local distance = (Object:WaitForChild("Main").Position - player.Character.HumanoidRootPart.Position).Magnitude
                     if distance <= MineAuraRadius then
                         task.spawn(minespecificblock, Object)
+                        DontDetect = true
                     end
                 end
 
-                if RareOreDetecter then
+                if RareOreDetecter and not DontDetect then
                     repeat
                         task.wait(0.2)
                     until 
