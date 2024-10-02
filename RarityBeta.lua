@@ -478,21 +478,17 @@ end)
 
 UserInputService.InputBegan:Connect(function(input, gameProcessedEvent)
     if not gameProcessedEvent then
-		if QuickMineKeyEnabled and QuickMineKeycode then
-			if input.KeyCode == QuickMineKeycode then
-				if MineRemoteName then
-					task.spawn(MineCubesNearPlayer)
-				else
-					notifyUser("Error Mining", "Please mine a block before quick mine!", 3, errorDecalID)
-				end
+		if QuickMineKeycode and QuickMineKeyEnabled and input.KeyCode == QuickMineKeycode then
+			if MineRemoteName then
+				task.spawn(MineCubesNearPlayer)
+			else
+				notifyUser("Error Mining", "Please mine a block before quick mine!", 3, errorDecalID)
 			end
-        elseif QuickSellKeyEnabled and QuickSellKeycode then
-			if input.KeyCode == QuickSellKeycode then
-				if SellRemoteName then
-					task.spawn(SellMaterials)
-				else
-					notifyUser("Error Selling", "Please sell a block before using quick sell!", 3, errorDecalID)
-				end
+	    elseif QuickSellKeycode and QuickSellKeyEnabled and input.KeyCode == QuickSellKeycode then
+			if SellRemoteName then
+				task.spawn(SellMaterials)
+			else
+				notifyUser("Error Selling", "Please sell a block before using quick sell!", 3, errorDecalID)
 			end
         end
     end
