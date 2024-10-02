@@ -303,7 +303,6 @@ local function SellMaterials()
         local JimmyPos = JimmyPenny.Button:GetPrimaryPartCFrame()
         local CurrentPos = player.Character.HumanoidRootPart.CFrame
 
-		player.Character.HumanoidRootPart.Anchored = true
         if UserStateRemoteName then
             ReplicatedStorage.REM:FindFirstChild(UserStateRemoteName):FireServer(unpack(args2))
         end
@@ -312,7 +311,6 @@ local function SellMaterials()
         ReplicatedStorage.REM:FindFirstChild(SellRemoteName):InvokeServer(unpack(args))
         task.wait(0.2)
         player.Character.HumanoidRootPart.CFrame = CurrentPos
-		player.Character.HumanoidRootPart.Anchored = false
     else
         notifyUser("Error Selling", "Please sell a block before using quick sell!", 3, errorDecalID)
     end
