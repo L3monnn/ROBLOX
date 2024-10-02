@@ -7,11 +7,10 @@ local MainTab = Window.NewTab("Main")
 local RareTab = Window.NewTab("Rare Items")
 --//section
 local HomeSection = HomeTab.NewSection("Home")
+local DebugSection = RareTab.NewSection("Debug")
 local MineSection = MainTab.NewSection("Mine Hax")
 local SellSection = MainTab.NewSection("Sell Hax")
 local SpawnsSection = RareTab.NewSection("Rare Item Settings")
-local OresSection = RareTab.NewSection("Ore Spawns")
-local ChestsSection = RareTab.NewSection("Chest Spawns")
 --//labels
 local MineTutorialLabel = HomeSection.NewLabel("made by .lemonnn", true)
 local MineTutorialLabel = MineSection.NewLabelWithComment("How to use", "You must mine any block before using automine!", false, nil, nil)
@@ -23,6 +22,7 @@ local StarterGui = game:GetService("StarterGui")
 local player = game.Players.LocalPlayer
 
 local MineAuraRadius = 60
+
 local ChestDetecter = true
 local RareOreDetecter = true
 local RarityThreshold = 35000
@@ -310,6 +310,24 @@ end
 
 -- Interactable UI
 
+local ReloadCubesButton = DebugSection.NewButton("Reload Cubes", function()
+    local cubesuccess, cuberesult = pcall(initCubes)
+    if not cubesuccess then
+        notifyUser("Error Initalizing Cubes", "Result: " .. cuberesult, 5, errorDecalID)
+    else
+        Window.Nofitication("Successfully reloaded cubes!")
+    end
+end)
+
+local ReloadDetectorButton = DebugSection.NewButton("Reload Detectir", function()
+    local chestsuccess, chestresult = pcall(initChestEsp)
+    if not chestsuccess then
+        notifyUser("Error Initalizing Chest ESP", "Result: " .. chestresult, 5, errorDecalID)
+    else
+        Window.Nofitication("Successfully reloaded Detector!")
+    end
+end)
+
 local AutoMineToggle = MineSection.NewToggle("Toggle Auto Mine", function(value)
     Window.Nofitication("AutoMine not working yet")
 end, false)
@@ -381,7 +399,7 @@ local MineKeybindButton = MineSection.NewButton("Quick Mine keybind (Click then 
     local MineKeybindConn
     MineKeybindConn = UserInputService.InputBegan:Connect(function(input, gameProcessedEvent)
         if not gameProcessedEvent then
-            QuickMineKeycode = input
+            QuickMineKeycode = input.KeyCode
             MineKeybindConn:Disconnect()
         end
     end)
@@ -399,7 +417,7 @@ local SellKeybindButton = SellSection.NewButton("Quick Sell keybind (Click then 
     local SellKeybindConn
     SellKeybindConn = UserInputService.InputBegan:Connect(function(input, gameProcessedEvent)
         if not gameProcessedEvent then
-            QuickSellKeycode = input
+            QuickSellKeycode = input.KeyCode
             SellKeybindConn:Disconnect()
         end
     end)
@@ -407,11 +425,11 @@ end)
 
 local ChestDetecterToggle = SpawnsSection.NewToggle("Toggle Chest Detecter", function(value)
     ChestDetecter = value
-end, false)
+end, true)
 
 local RareOreDetecterToggle = SpawnsSection.NewToggle("Toggle Rare Ore Detecter", function(value)
     RareOreDetecter = value
-end, false)
+end, true)
 
 local RarityThresholdSlider = SpawnsSection.NewSlider("Ore Rarity Thresold (1:1000)", 1, 100, false, function(value)
     MineAuraRadius = value * 1000
@@ -480,7 +498,9 @@ UserInputService.InputBegan:Connect(function(input, gameProcessedEvent)
     end
 end)
 
-task.spawn(function()
+local function initScript()
+    Window.Nofitication("Loading... Please wait")
+
     local cubesuccess, cuberesult = pcall(initCubes)
     if not cubesuccess then
         notifyUser("Error Initalizing Cubes", "Result: " .. cuberesult, 5, errorDecalID)
@@ -492,4 +512,6 @@ task.spawn(function()
     end
 
     notifyUser("SkibidiWare v1.20.4", "Successfully loaded! by @.lemonnn", 10, successDecalID, "NoCallback")
-end)
+end
+
+initScript()
