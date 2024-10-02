@@ -303,6 +303,8 @@ local function SellMaterials()
         task.wait(0.2)
         player.Character.HumanoidRootPart.CFrame = CurrentPos
 		player.Character.HumanoidRootPart.Anchored = false
+    else
+        notifyUser("Error Selling", "Please sell a block before using quick sell!", 3, errorDecalID)
     end
 end
 
@@ -313,7 +315,7 @@ local AutoMineToggle = MineSection.NewToggle("Toggle Auto Mine", function(value)
 end, false)
 
 local QuickMineButton = MineSection.NewButton("Quick Mine", function()
-    print("Mined Allat")
+    MineCubesNearPlayer()
 end)
 
 local MineRadiusSlider = MineSection.NewSlider("Mine Radius (in studs)", 12, 120, false, function(value)
