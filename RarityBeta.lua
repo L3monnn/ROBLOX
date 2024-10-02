@@ -282,6 +282,13 @@ local function SellMaterials()
             ["ToSell"] = {}
         }
     }
+
+    local args2 = {
+        [1] = {
+            ["UserState"] = "__"
+        }
+    }
+
     for _, v in pairs(Materials:GetChildren()) do
         if not v:GetAttribute("Locked") then
             args[1]["ToSell"][v.Name] = {
@@ -297,8 +304,10 @@ local function SellMaterials()
         local CurrentPos = player.Character.HumanoidRootPart.CFrame
 
 		player.Character.HumanoidRootPart.Anchored = true
+        if UserStateRemoteName then
+            ReplicatedStorage.REM:FindFirstChild(UserStateRemoteName):FireServer(unpack(args2))
+        end
         player.Character.HumanoidRootPart.CFrame = JimmyPos
-        task.wait(0.2)
         ReplicatedStorage.REM:FindFirstChild(SellRemoteName):InvokeServer(unpack(args))
         task.wait(0.2)
         player.Character.HumanoidRootPart.CFrame = CurrentPos
