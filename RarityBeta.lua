@@ -7,7 +7,7 @@ local MainTab = Window.NewTab("Main")
 local RareTab = Window.NewTab("Rare Items")
 --//section
 local HomeSection = HomeTab.NewSection("Home")
-local DebugSection = RareTab.NewSection("Debug")
+local DebugSection = HomeTab.NewSection("Debug")
 local MineSection = MainTab.NewSection("Mine Hax")
 local SellSection = MainTab.NewSection("Sell Hax")
 local SpawnsSection = RareTab.NewSection("Rare Item Settings")
@@ -319,7 +319,7 @@ local ReloadCubesButton = DebugSection.NewButton("Reload Cubes", function()
     end
 end)
 
-local ReloadDetectorButton = DebugSection.NewButton("Reload Detectir", function()
+local ReloadDetectorButton = DebugSection.NewButton("Reload Detector", function()
     local chestsuccess, chestresult = pcall(initChestEsp)
     if not chestsuccess then
         notifyUser("Error Initalizing Chest ESP", "Result: " .. chestresult, 5, errorDecalID)
@@ -333,7 +333,7 @@ local AutoMineToggle = MineSection.NewToggle("Toggle Auto Mine", function(value)
 end, false)
 
 local QuickMineButton = MineSection.NewButton("Quick Mine", function()
-    MineCubesNearPlayer()
+    task.spawn(MineCubesNearPlayer)
 end)
 
 local MineRadiusSlider = MineSection.NewSlider("Mine Radius (in studs)", 12, 120, false, function(value)
@@ -406,7 +406,7 @@ local MineKeybindButton = MineSection.NewButton("Quick Mine keybind (Click then 
 end)
 
 local QuickSellButton = SellSection.NewButton("Quick Sell", function()
-    SellMaterials()
+    task.spawn(SellMaterials)
 end)
 
 local QuickSellKeyEnabledToggle = SellSection.NewToggle("Toggle Quick Sell Keybind", function(value)
@@ -479,7 +479,7 @@ end)
 UserInputService.InputBegan:Connect(function(input, gameProcessedEvent)
     if not gameProcessedEvent then
 		if QuickMineKeyEnabled and QuickMineKeycode then
-			if input.KeyCode == Enum.KeyCode[QuickMineKeycode] then
+			if input.KeyCode == QuickMineKeycode then
 				if MineRemoteName then
 					task.spawn(MineCubesNearPlayer)
 				else
@@ -487,7 +487,7 @@ UserInputService.InputBegan:Connect(function(input, gameProcessedEvent)
 				end
 			end
         elseif QuickSellKeyEnabled and QuickSellKeycode then
-			if input.KeyCode == Enum.KeyCode[QuickSellKeycode] then
+			if input.KeyCode == QuickSellKeycode then
 				if SellRemoteName then
 					task.spawn(SellMaterials)
 				else
