@@ -21,6 +21,7 @@ local UserInputService = game:GetService("UserInputService")
 local StarterGui = game:GetService("StarterGui")
 local player = game.Players.LocalPlayer
 
+local AutoMineBlocks = false
 local MineAuraRadius = 60
 
 local ChestDetecter = true
@@ -116,6 +117,37 @@ local function highlightCube(cube)
     end
 end
 
+local function minespecificblock(cube)
+    local character = player.Character
+    if not character or not character:FindFirstChild("HumanoidRootPart") then
+        return
+    end
+
+    local pickaxeStrength = 10
+    local pickaxe = game.Players.LocalPlayer:FindFirstChild("StarterGear"):FindFirstChild("Pickaxe")
+    if pickaxe then
+        pickaxeStrength = pickaxe:GetAttribute("HitPower")
+    end
+
+    local playerPosition = character.HumanoidRootPart.Position
+    if cube:FindFirstChild("Main") then
+        local cubeHealth = cube:GetAttribute("CubeHealth")
+        local HitsNeeded = cubeHealth / pickaxeStrength
+        local TrueHitsNeeded = math.ceil(HitsNeeded)
+        if TrueHitsNeeded < 1 or TrueHitsNeeded > 100 or typeof(TrueHitsNeeded) ~= "number" then
+            TrueHitsNeeded = 1
+        end
+                    
+        for i = TrueHitsNeeded, 1, -1 do          
+            if not Main[cube.Name] then break end
+
+            local args = {[1] = {["Position"] = cube.Name}}
+            game:GetService("ReplicatedStorage").REM:FindFirstChild(MineRemoteName):InvokeServer(unpack(args))
+            task.wait()
+        end
+    end
+end
+
 local function initCubes()
     if CubeAddedConn or CubeRemovedConn then
         CubeAddedConn:Disconnect()
@@ -127,8 +159,8 @@ local function initCubes()
     for _, cube in pairs(Cubes:GetDescendants()) do
         if cube:IsA("Model") and cube.Parent:IsA("Folder") then
             Main[cube.Name] = cube
-            if RareOreDetecter then
-                task.spawn(function()
+            task.spawn(function()
+                if RareOreDetecter then
                     if RareOres[cube:GetAttribute("CubeName")] then
                         highlightCube(cube)
                         print("Found Thru cube name")
@@ -138,16 +170,23 @@ local function initCubes()
                             print("found thru Cube Rarity")
                         end
                     end
-                end)
-            end
+                end
+            end)
         end
     end
     
     CubeAddedConn = Cubes.DescendantAdded:Connect(function(Object)
         if Object:IsA("Model") then
             Main[Object.Name] = Object
-            if RareOreDetecter then
-                task.spawn(function()
+            task.spawn(function()
+                if AutoMineBlocks then
+                    local distance = (Object.Main.Position - player.Character.HumanoidRootPart.Position).Magnitude
+                    if distance <= MineAuraRadius then
+                        task.spawn(minespecificblock, Object)
+                    end
+                end
+
+                if RareOreDetecter then
                     repeat
                         task.wait(0.2)
                     until 
@@ -161,8 +200,8 @@ local function initCubes()
                             print("found thru Cube Rarity added")
                         end
                     end
-                end)
-            end
+                end
+            end)
         end
     end)
     
@@ -337,7 +376,7 @@ local ReloadDetectorButton = DebugSection.NewButton("Reload Detector", function(
 end)
 
 local AutoMineToggle = MineSection.NewToggle("Toggle Auto Mine", function(value)
-    Window.Nofitication("AutoMine not working yet")
+    AutoMineBlocks = value
 end, false)
 
 local QuickMineButton = MineSection.NewButton("Quick Mine", function()
@@ -440,7 +479,7 @@ local RareOreDetecterToggle = SpawnsSection.NewToggle("Toggle Rare Ore Detecter"
 end, true)
 
 local RarityThresholdSlider = SpawnsSection.NewSlider("Ore Rarity Thresold (1:1000)", 1, 100, false, function(value)
-    MineAuraRadius = value * 1000
+    RarityThreshold = value * 1000
 end, 35)
 
 local namecall
