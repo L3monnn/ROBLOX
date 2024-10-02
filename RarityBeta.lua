@@ -308,6 +308,7 @@ local function SellMaterials()
             ReplicatedStorage.REM:FindFirstChild(UserStateRemoteName):FireServer(unpack(args2))
         end
         player.Character.HumanoidRootPart.CFrame = JimmyPos
+        task.wait(0.3)
         ReplicatedStorage.REM:FindFirstChild(SellRemoteName):InvokeServer(unpack(args))
         task.wait(0.2)
         player.Character.HumanoidRootPart.CFrame = CurrentPos
