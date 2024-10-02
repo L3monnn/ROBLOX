@@ -375,9 +375,15 @@ local QuickMineKeyEnabledToggle = MineSection.NewToggle("Toggle Quick Mine Keybi
     QuickMineKeyEnabled = value
 end, false)
 
-local MineKeycodeDropdown = MineSection.NewDropdown("Quick Mine keybind", KeyDropdownList, function(value)
-    QuickMineKeycode = value
-end, false)
+local MineKeybindButton = MineSection.NewButton("Quick Mine keybind (Click then press any key)", function()
+    local MineKeybindConn
+    MineKeybindConn = UserInputService.InputBegan:Connect(function(input, gameProcessedEvent)
+        if not gameProcessedEvent then
+            QuickMineKeycode = input
+            MineKeybindConn:Disconnect()
+        end
+    end)
+end)
 
 local QuickSellButton = SellSection.NewButton("Quick Sell", function()
     SellMaterials()
@@ -387,9 +393,15 @@ local QuickSellKeyEnabledToggle = SellSection.NewToggle("Toggle Quick Sell Keybi
     QuickSellKeyEnabled = value
 end, false)
 
-local SellKeycodeDropdown = SellSection.NewDropdown("Quick Sell keybind", KeyDropdownList, function(value)
-    QuickSellKeycode = value
-end, false)
+local SellKeybindButton = SellSection.NewButton("Quick Sell keybind (Click then press any key)", function()
+    local SellKeybindConn
+    SellKeybindConn = UserInputService.InputBegan:Connect(function(input, gameProcessedEvent)
+        if not gameProcessedEvent then
+            QuickSellKeycode = input
+            SellKeybindConn:Disconnect()
+        end
+    end)
+end)
 
 local ChestDetecterToggle = SpawnsSection.NewToggle("Toggle Chest Detecter", function(value)
     ChestDetecter = value
