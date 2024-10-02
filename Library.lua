@@ -4,7 +4,7 @@ local InputService = game:GetService("UserInputService")
 
 local UILibrary ={
 	["Options"] = {
-		["Size"] = 0.5
+		["Size"] = 0.6
 	}
 }
 
@@ -178,7 +178,8 @@ function UILibrary.Main(PrjName,HideKey)
 	local function update(input)
 		local delta = input.Position - dragStart
 		pcall(function()
-			Main:TweenPosition(UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y),"Out","Linear",0.1,true,nil)
+			Main.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y) 
+			--Main:TweenPosition(UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y),"Out","Linear",0.1,true,nil)
 		end)
 	end
 	Main.InputBegan:Connect(function(input)
