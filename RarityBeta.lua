@@ -38,11 +38,11 @@ local SellRemoteName = nil
 local UserStateRemoteName = nil
 local SequenceRemoteName = nil
 
-local errorDecalID = "rbxassetid://5107154093"
-local infoDecalID = "rbxassetid://12900311641"
-local successDecalID = "rbxassetid://12900311435"
-local chestDecalID = "rbxassetid://6846330057"
-local diamondDecalID = "rbxassetid://16015421629"
+local errorDecalID = "rbxthumb://type=Asset&id=5107154093&w=150&h=150"
+local infoDecalID = "rbxthumb://type=Asset&id=12900311641&w=150&h=150"
+local successDecalID = "rbxthumb://type=Asset&id=12900311435&w=150&h=150"
+local chestDecalID = "rbxthumb://type=Asset&id=6846330057&w=150&h=150"
+local diamondDecalID = "rbxthumb://type=Asset&id=16015421629&w=150&h=150"
 
 -- functions
 
