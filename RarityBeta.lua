@@ -1,4 +1,4 @@
-local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/L3monnn/RobloxScripts/refs/heads/Main/Library.lua"))()
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/L3monnn/UI-Libraries/main/Ocerium"))()
 --//window
 local Window = Library.Main("Skibidite", "LeftAlt") -- change "LeftAlt" to key that you want will hide gui
 --//tab
