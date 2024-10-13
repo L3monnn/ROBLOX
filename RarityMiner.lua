@@ -78,11 +78,6 @@ local ChestDetecter = true
 local RareOreDetecter = true
 local RarityThreshold = 25000
 
-local QuickMineKeyEnabled = false
-local QuickSellKeyEnabled = false
-local QuickMineKeycode = nil
-local QuickSellKeycode = nil
-
 local MineRemoteName = nil
 local SellRemoteName = nil
 local UserStateRemoteName = nil
@@ -105,7 +100,8 @@ local RareOres = {
     "404ium",
     "AmberFossil",
     "7ium",
-    "Toothite"
+    "Toothite",
+    "Soulstone",
 }
 
 local Cubes = workspace.World.Cubes
