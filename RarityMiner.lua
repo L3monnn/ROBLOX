@@ -48,6 +48,9 @@ local SellSection = MainTab:addSection({
 local SpawnsSection = RareTab:addSection({
     title = "Rare Item Settings"
 })
+local TraitSection = RareTab:addSection({
+    title = "Traits"
+})
 local ColorsSection = ThemeTab:addSection({
     title = "Colors"
 })
@@ -77,11 +80,14 @@ local MineAuraRadius = 60
 local ChestDetecter = true
 local RareOreDetecter = true
 local RarityThreshold = 25000
+local TraitTimeout = 100
+local TraitRarity = "Godly"
 
 local MineRemoteName = nil
 local SellRemoteName = nil
 local UserStateRemoteName = nil
 local SequenceRemoteName = nil
+local RollRemoteName = nil
 
 local errorDecalID = "rbxthumb://type=Asset&id=5107154093&w=150&h=150"
 local infoDecalID = "rbxthumb://type=Asset&id=12900311641&w=150&h=150"
@@ -405,6 +411,38 @@ local function SellMaterials()
     end
 end
 
+local function RollTrait()
+    if RollRemoteName then
+        local args = {
+            [1] = {
+                ["UUID"] = "31517989924827"
+            }
+        }
+
+        for i = 1, TraitTimeout do
+            if game.Players.LocalPlayer.leaderstats.Coins.Value < 15000 then
+                notifyUser("Error Rolling", "Insufficient Coins!", 3, infoDecalID)
+                break
+            end
+        
+            local result = ReplicatedStorage.REM:FindFirstChild(RollRemoteName):InvokeServer(unpack(args))
+            print(result)
+        
+            if result == TraitRarity then
+                notifyUser("Success!", "Successfuly rolled the" .. TraitRarity .. "Trait", 3, successDecalID)
+                break
+            elseif not result then
+                notifyUser("Error Rolling", "An unexpected error occured while trying to roll", 3, errorDecalID)
+                break
+            end
+        
+            task.wait()
+        end
+    else
+        notifyUser("Error Rolling", "Please roll a trait before using auto roll!", 3, errorDecalID)
+    end
+end
+
 -- Interactable UI
 HomeSection:addKeybind({
     title = "Toggle UI Keybind",
@@ -523,6 +561,34 @@ SpawnsSection:addSlider({
     end
 })
 
+TraitSection:addButton({
+    title = "Toggle auto trait roll",
+    callback = function()
+        task.spawn(RollTrait)
+    end
+})
+
+TraitSection:addSlider({
+    title = "Roll timeout",
+    default = 100,
+    min = 1,
+    max = 1000,
+    callback = function(value)
+        TraitTimeout = value
+    end
+})
+
+local TraitRarityList = {"Unique", "Godly", "Divine", "Lunar", "Mythical", "Legendary"}
+
+TraitSection:addDropdown({
+    title = "Pick a Trait to roll for",
+    default = "Godly",
+    list = TraitRarityList,
+    callback = function(value)
+        TraitRarity = value
+    end
+})
+
 --// Adding a color picker for each type of theme customisable
 for theme, color in pairs(Themes) do
     ColorsSection:addColorPicker({
@@ -561,6 +627,8 @@ namecall = hookmetamethod(game, "__namecall", function(self, ...)
                     MineRemoteName = self.Name
                 elseif i == "ToSell" and typeof(v) == "table" and not SellRemoteName then
                     SellRemoteName = self.Name
+                elseif i == "UUID" and v == "31517989924827" and not RollRemoteName then
+                    RollRemoteName = self.Name
                 end
             end
         end
@@ -576,7 +644,7 @@ namecall = hookmetamethod(game, "__namecall", function(self, ...)
         end
     end
 
-    if MineRemoteName and SellRemoteName and UserStateRemoteName and SequenceRemoteName then
+    if MineRemoteName and SellRemoteName and UserStateRemoteName and SequenceRemoteName and RollRemoteName then
         stopExecution = true
         print("Skibidi")
     end
