@@ -556,6 +556,8 @@ SpawnsSection:addSlider({
     end
 })
 
+--[[ Not work
+
 TraitSection:addButton({
     title = "Auto Roll Traits",
     callback = function()
@@ -583,6 +585,8 @@ TraitSection:addDropdown({
         TraitRarity = value
     end
 })
+
+]]--
 
 --// Adding a color picker for each type of theme customisable
 for theme, color in pairs(Themes) do
@@ -639,7 +643,7 @@ namecall = hookmetamethod(game, "__namecall", function(self, ...)
         end
     end
 
-    if MineRemoteName and SellRemoteName and UserStateRemoteName and SequenceRemoteName and RollRemoteName then
+    if MineRemoteName and SellRemoteName and UserStateRemoteName and SequenceRemoteName then
         stopExecution = true
         print("Skibidi")
     end
