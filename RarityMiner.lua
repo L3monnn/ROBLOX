@@ -33,19 +33,19 @@ local ThemeTab = Venyx:addPage({
 })
 
 --// section
-local HomeSection = Venyx:addSection({
+local HomeSection = HomeTab:addSection({
     title = "Home"
 })
-local DebugSection = Venyx:addSection({
+local DebugSection = HomeTab:addSection({
     title = "Debug"
 })
-local MineSection = Venyx:addSection({
+local MineSection = MainTab:addSection({
     title = "Mine Hax"
 })
-local SellSection = Venyx:addSection({
+local SellSection = MainTab:addSection({
     title = "Sell Hax"
 })
-local SpawnsSection = Venyx:addSection({
+local SpawnsSection = RareTab:addSection({
     title = "Rare Item Settings"
 })
 local ColorsSection = ThemeTab:addSection({
