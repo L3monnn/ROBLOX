@@ -420,7 +420,7 @@ local function RollTrait()
         }
 
         for i = 1, TraitTimeout do
-            if game.Players.LocalPlayer.leaderstats.Coins.Value < 15000 then
+            if tonumber(game.Players.LocalPlayer.leaderstats.Coins.Value) < 15000 then
                 notifyUser("Error Rolling", "Insufficient Coins!", 3, infoDecalID)
                 break
             end
