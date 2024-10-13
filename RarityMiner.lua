@@ -410,6 +410,14 @@ local function SellMaterials()
 end
 
 -- Interactable UI
+HomeSection:addKeybind({
+    title = "Toggle UI Keybind",
+    key = Enum.KeyCode.V,
+    callback = function()
+        Venyx:toggle()
+    end
+})
+
 DebugSection:addButton({
     title = "Reload Cubes",
     callback = function()
