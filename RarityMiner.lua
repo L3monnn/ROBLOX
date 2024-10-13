@@ -668,7 +668,7 @@ local function initScript()
         notifyUser("Error Initalizing Chest ESP", "Result: " .. chestresult, 5, errorDecalID)
     end
 
-    notifyUser("Skibidite v1.24.1", "Successfully loaded! by @.lemonnn", 10, successDecalID, "NoCallback")
+    notifyUser("Skibidite v1.24.3", "Successfully loaded! by @.lemonnn", 10, successDecalID, "NoCallback")
 end
 
 initScript()
