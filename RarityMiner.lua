@@ -562,7 +562,7 @@ SpawnsSection:addSlider({
 })
 
 TraitSection:addButton({
-    title = "Toggle auto trait roll",
+    title = "Auto Roll Traits",
     callback = function()
         task.spawn(RollTrait)
     end
@@ -627,7 +627,7 @@ namecall = hookmetamethod(game, "__namecall", function(self, ...)
                     MineRemoteName = self.Name
                 elseif i == "ToSell" and typeof(v) == "table" and not SellRemoteName then
                     SellRemoteName = self.Name
-                elseif i == "UUID" and v == "31517989924827" and not RollRemoteName then
+                elseif i == "UUID" and typeof(v) == "string" and not RollRemoteName then
                     RollRemoteName = self.Name
                 end
             end
