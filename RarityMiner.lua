@@ -163,10 +163,11 @@ local function highlightCube(cube)
             Callback = bindableFunction
         })
 
-        task.wait(6.5)
-        if bindableFunction then
-            bindableFunction:Destroy()
-        end
+        task.delay(6.5, function()
+            if bindableFunction then
+                bindableFunction:Destroy()
+            end
+        end)
     end
 end
 
@@ -176,29 +177,21 @@ local function minespecificblock(cube)
         return
     end
 
-    local pickaxeStrength = 10
-    local pickaxe = game.Players.LocalPlayer:FindFirstChild("StarterGear"):FindFirstChild("Pickaxe")
-    if pickaxe then
-        pickaxeStrength = pickaxe:GetAttribute("HitPower")
-    end
+    local pickaxe = player:FindFirstChild("StarterGear"):FindFirstChild("Pickaxe")
+    local pickaxeStrength = pickaxe and pickaxe:GetAttribute("HitPower") or 10
 
-    local playerPosition = character.HumanoidRootPart.Position
-    if cube:FindFirstChild("Main") then
-        local cubeHealth = cube:GetAttribute("CubeHealth")
-        local HitsNeeded = cubeHealth / pickaxeStrength
-        local TrueHitsNeeded = math.ceil(HitsNeeded)
-        if TrueHitsNeeded < 1 or TrueHitsNeeded > 100 or typeof(TrueHitsNeeded) ~= "number" then
-            TrueHitsNeeded = 1
-        end
-                    
-        for i = TrueHitsNeeded, 1, -1 do          
-            if not Main[cube.Name] then break end
+    local cubeHealth = cube:GetAttribute("CubeHealth")
+    local hitsNeeded = math.ceil(cubeHealth / pickaxeStrength)
+    hitsNeeded = math.clamp(hitsNeeded, 1, 100)
 
-            local args = {[1] = {["Position"] = cube.Name}}
+    local args = {[1] = {["Position"] = cube.Name}}
+
+    task.spawn(function()
+        for i = 1, hitsNeeded do
+            if not Main[cube.Name] then return end
             game:GetService("ReplicatedStorage").REM:FindFirstChild(MineRemoteName):InvokeServer(unpack(args))
-            task.wait()
         end
-    end
+    end)
 end
 
 local function initCubes()
@@ -206,61 +199,71 @@ local function initCubes()
         CubeAddedConn:Disconnect()
         CubeRemovedConn:Disconnect()
     end
-    
+
     Main = {}
+
+    local function processCube(cube)
+        Main[cube.Name] = cube
+
+        if RareOreDetecter then
+            while not cube:GetAttribute("TrueRarity") and not cube:GetAttribute("CubeName") do
+                task.wait(0.2)
+            end
+
+            local cubeName = cube:GetAttribute("CubeName")
+            local trueRarity = cube:GetAttribute("TrueRarity")
+
+            if RareOres[cubeName] then
+                highlightCube(cube)
+                print("Found Thru cube name")
+            elseif trueRarity and trueRarity >= RarityThreshold then
+                highlightCube(cube)
+                print("found thru Cube Rarity")
+            end
+        end
+    end
 
     for _, cube in pairs(Cubes:GetDescendants()) do
         if cube:IsA("Model") and cube.Parent:IsA("Folder") then
-            Main[cube.Name] = cube
-            task.spawn(function()
-                if RareOreDetecter then
-                    if RareOres[cube:GetAttribute("CubeName")] then
-                        highlightCube(cube)
-                        print("Found Thru cube name")
-                    elseif cube:GetAttribute("TrueRarity") then
-                        if cube:GetAttribute("TrueRarity") >= RarityThreshold then
-                            highlightCube(cube)
-                            print("found thru Cube Rarity")
-                        end
-                    end
-                end
-            end)
+            processCube(cube)
         end
     end
-    
+
     CubeAddedConn = Cubes.DescendantAdded:Connect(function(Object)
-        if Object:IsA("Model") then
+        if Object:IsA("Model") and Object:FindFirstChild("Main") then
+            local dontDetect = false
             Main[Object.Name] = Object
-            task.spawn(function()
-                local DontDetect = false
 
-                if AutoMineBlocks then
-                    local distance = (Object:WaitForChild("Main").Position - player.Character.HumanoidRootPart.Position).Magnitude
-                    if distance <= MineAuraRadius then
-                        task.spawn(minespecificblock, Object)
-                        DontDetect = true
-                    end
-                end
+            local playerPos = player.Character.HumanoidRootPart.Position
+            local cubePos = Object.Main.Position
+            local distance = (cubePos - playerPos).Magnitude
 
-                if RareOreDetecter and not DontDetect then
-                    repeat
+            if AutoMineBlocks and distance <= MineAuraRadius then
+                task.spawn(minespecificblock, Object)
+                dontDetect = true
+            end
+
+            if RareOreDetecter and not dontDetect then
+                task.spawn(function()
+                    while not Object:GetAttribute("TrueRarity") and not Object:GetAttribute("CubeName") do
                         task.wait(0.2)
-                    until 
-                    Object:GetAttribute("TrueRarity") or Object:GetAttribute("CubeName")
-                    if RareOres[Object:GetAttribute("CubeName")] then
+                    end
+
+                    local cubeName = Object:GetAttribute("CubeName")
+                    local trueRarity = Object:GetAttribute("TrueRarity")
+
+                    if RareOres[cubeName] then
                         highlightCube(Object)
                         print("Found Thru cube name added")
-                    elseif Object:GetAttribute("TrueRarity") then
-                        if Object:GetAttribute("TrueRarity") >= RarityThreshold then
-                            highlightCube(Object)
-                            print("found thru Cube Rarity added")
-                        end
+                    elseif trueRarity and trueRarity >= RarityThreshold then
+                        highlightCube(Object)
+                        print("found thru Cube Rarity added")
                     end
-                end
-            end)
+                end)
+            end
         end
     end)
-    
+
     CubeRemovedConn = Cubes.DescendantRemoving:Connect(function(Object)
         if Object:IsA("Model") then
             Main[Object.Name] = nil
@@ -338,35 +341,51 @@ local function MineCubesNearPlayer()
 
     local radius = MineAuraRadius
 
-    local pickaxeStrength = 10
-    local pickaxe = game.Players.LocalPlayer:FindFirstChild("StarterGear"):FindFirstChild("Pickaxe")
-    if pickaxe then
-        pickaxeStrength = pickaxe:GetAttribute("HitPower")
-    end
+    local pickaxe = player:FindFirstChild("StarterGear"):FindFirstChild("Pickaxe")
+    local pickaxeStrength = pickaxe and pickaxe:GetAttribute("HitPower") or 10
 
     local playerPosition = character.HumanoidRootPart.Position
-    for cubeName, cube in pairs(Main) do
-        task.spawn(function()
-            if cube:FindFirstChild("Main") then
-                local distance = (cube.Main.Position - playerPosition).Magnitude
-                if distance <= radius then -- Each Cube is 8x8
-                    local cubeHealth = cube:GetAttribute("CubeHealth")
-                    local HitsNeeded = cubeHealth / pickaxeStrength
-                    local TrueHitsNeeded = math.ceil(HitsNeeded)
-                    if TrueHitsNeeded < 1 or TrueHitsNeeded > 100 or typeof(TrueHitsNeeded) ~= "number" then
-                        TrueHitsNeeded = 1
-                    end
-                    
-                    for i = TrueHitsNeeded, 1, -1 do          
-                        if not Main[cubeName] then break end
 
-                        local args = {[1] = {["Position"] = cubeName}}
+    local cubesToMine = {}
+    
+    for cubeName, cube in pairs(Main) do
+        if cube:FindFirstChild("Main") then
+            local distance = (cube.Main.Position - playerPosition).Magnitude
+            if distance <= radius then
+                table.insert(cubesToMine, cube)
+            end
+        end
+    end
+
+    local batchSize = 10
+    local currentBatch = {}
+
+    for i, cube in pairs(cubesToMine) do
+        table.insert(currentBatch, cube)
+        
+        if #currentBatch >= batchSize or i == #cubesToMine then
+            task.spawn(function()
+                for _, cube in pairs(currentBatch) do
+                    local cubeHealth = cube:GetAttribute("CubeHealth")
+                    local HitsNeeded = math.ceil(cubeHealth / pickaxeStrength)
+                    HitsNeeded = math.clamp(HitsNeeded, 1, 100)
+
+                    for hit = 1, HitsNeeded do
+                        if not Main[cube.Name] then break end
+
+                        local args = {[1] = {["Position"] = cube.Name}}
                         game:GetService("ReplicatedStorage").REM:FindFirstChild(MineRemoteName):InvokeServer(unpack(args))
-                        task.wait()
+                        
+                        if hit < HitsNeeded then
+                            task.wait()
+                        end
                     end
                 end
-            end
-        end)
+            end)
+
+            currentBatch = {}
+            task.wait(0.05)
+        end
     end
 end
 
