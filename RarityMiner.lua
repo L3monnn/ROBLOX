@@ -27,6 +27,10 @@ local RareTab = Venyx:addPage({
     title = "Rare Items",
     icon = 5012544693
 })
+local ThemeTab = Venyx:addPage({
+    title = "Themes",
+    icon = 5012544693
+})
 
 --// section
 local HomeSection = Venyx:addSection({
@@ -43,6 +47,9 @@ local SellSection = Venyx:addSection({
 })
 local SpawnsSection = Venyx:addSection({
     title = "Rare Item Settings"
+})
+local ColorsSection = ThemeTab:addSection({
+    title = "Colors"
 })
 
 --// labels
@@ -61,6 +68,8 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UserInputService = game:GetService("UserInputService")
 local StarterGui = game:GetService("StarterGui")
 local player = game.Players.LocalPlayer
+
+local GoodSignal = loadstring(game:HttpGet("https://raw.githubusercontent.com/stravant/goodsignal/master/src/init.lua"))()
 
 local AutoMineBlocks = false
 local MineAuraRadius = 60
@@ -510,6 +519,26 @@ SpawnsSection:addSlider({
     end
 })
 
+--// Adding a color picker for each type of theme customisable
+for theme, color in pairs(Themes) do
+    ColorsSection:addColorPicker({
+        title = theme,
+        default = color,
+        callback = function(color3)
+            Venyx:setTheme({
+                theme = theme,
+                color3 = color3
+            })
+        end
+    })
+end
+
+Venyx:SelectPage({
+    page = Venyx.pages[1],
+    toggle = true
+})
+
+--// Hooking remotes
 local namecall
 local stopExecution = false
 
