@@ -203,8 +203,6 @@ local function initCubes()
     Main = {}
 
     local function processCube(cube)
-        Main[cube.Name] = cube
-
         if RareOreDetecter then
             while not cube:GetAttribute("TrueRarity") and not cube:GetAttribute("CubeName") do
                 task.wait(0.2)
@@ -224,15 +222,18 @@ local function initCubes()
     end
 
     for _, cube in pairs(Cubes:GetDescendants()) do
-        if cube:IsA("Model") and cube.Parent:IsA("Folder") then
-            processCube(cube)
+        if cube:IsA("Model") and cube.Parent:IsA("Folder") and cube:WaitForChild("Main") then
+            Main[cube.Name] = cube
+
+            task.spawn(processCube, cube)
         end
     end
 
     CubeAddedConn = Cubes.DescendantAdded:Connect(function(Object)
-        if Object:IsA("Model") and Object:FindFirstChild("Main") then
-            local dontDetect = false
+        if Object:IsA("Model") and Object:WaitForChild("Main") then
             Main[Object.Name] = Object
+    
+            local dontDetect = false
 
             local playerPos = player.Character.HumanoidRootPart.Position
             local cubePos = Object.Main.Position
@@ -244,22 +245,7 @@ local function initCubes()
             end
 
             if RareOreDetecter and not dontDetect then
-                task.spawn(function()
-                    while not Object:GetAttribute("TrueRarity") and not Object:GetAttribute("CubeName") do
-                        task.wait(0.2)
-                    end
-
-                    local cubeName = Object:GetAttribute("CubeName")
-                    local trueRarity = Object:GetAttribute("TrueRarity")
-
-                    if RareOres[cubeName] then
-                        highlightCube(Object)
-                        print("Found Thru cube name added")
-                    elseif trueRarity and trueRarity >= RarityThreshold then
-                        highlightCube(Object)
-                        print("found thru Cube Rarity added")
-                    end
-                end)
+                task.spawn(processCube, Object)
             end
         end
     end)
@@ -357,7 +343,7 @@ local function MineCubesNearPlayer()
         end
     end
 
-    local batchSize = 10
+    local batchSize = 20
     local currentBatch = {}
 
     for i, cube in pairs(cubesToMine) do
@@ -377,14 +363,14 @@ local function MineCubesNearPlayer()
                         game:GetService("ReplicatedStorage").REM:FindFirstChild(MineRemoteName):InvokeServer(unpack(args))
                         
                         if hit < HitsNeeded then
-                            task.wait()
+                            --task.wait()
                         end
                     end
                 end
             end)
 
             currentBatch = {}
-            task.wait(0.05)
+            task.wait()
         end
     end
 end
@@ -572,6 +558,16 @@ SpawnsSection:addSlider({
     max = 100,
     callback = function(value)
         RarityThreshold = value * 1000
+    end
+})
+
+TraitSection:addButton({
+    title = "Instant trait roll in seperate script",
+    callback = function()
+        Venyx:Notify({
+            title = "Seperate script",
+            text = "DM me in discord"
+        })
     end
 })
 
