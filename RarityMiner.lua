@@ -332,46 +332,26 @@ local function MineCubesNearPlayer()
 
     local playerPosition = character.HumanoidRootPart.Position
 
-    local cubesToMine = {}
-    
     for cubeName, cube in pairs(Main) do
-        if cube:FindFirstChild("Main") then
-            local distance = (cube.Main.Position - playerPosition).Magnitude
-            if distance <= radius then
-                table.insert(cubesToMine, cube)
-            end
-        end
-    end
-
-    local batchSize = 20
-    local currentBatch = {}
-
-    for i, cube in pairs(cubesToMine) do
-        table.insert(currentBatch, cube)
-        
-        if #currentBatch >= batchSize or i == #cubesToMine then
-            task.spawn(function()
-                for _, cube in pairs(currentBatch) do
+        task.spawn(function()
+            if cube:FindFirstChild("Main") then
+                local distance = (cube.Main.Position - playerPosition).Magnitude
+                if distance <= radius then -- Each Cube is 8x8
                     local cubeHealth = cube:GetAttribute("CubeHealth")
                     local HitsNeeded = math.ceil(cubeHealth / pickaxeStrength)
                     HitsNeeded = math.clamp(HitsNeeded, 1, 100)
 
-                    for hit = 1, HitsNeeded do
-                        if not Main[cube.Name] then break end
+                    for hit = 1, HitsNeeded do          
+                        if not Main[cubeName] then break end
 
-                        local args = {[1] = {["Position"] = cube.Name}}
+                        local args = {[1] = {["Position"] = cubeName}}
                         game:GetService("ReplicatedStorage").REM:FindFirstChild(MineRemoteName):InvokeServer(unpack(args))
-                        
-                        if hit < HitsNeeded then
-                            --task.wait()
-                        end
+
+                        task.wait()
                     end
                 end
-            end)
-
-            currentBatch = {}
-            task.wait()
-        end
+            end
+        end)
     end
 end
 
@@ -682,7 +662,7 @@ local function initScript()
         notifyUser("Error Initalizing Chest ESP", "Result: " .. chestresult, 5, errorDecalID)
     end
 
-    notifyUser("Skibidite v1.24.3", "Successfully loaded! by @.lemonnn", 10, successDecalID, "NoCallback")
+    notifyUser("Skibidite v1.24.4", "Successfully loaded! by @.lemonnn", 10, successDecalID, "NoCallback")
 end
 
 initScript()
