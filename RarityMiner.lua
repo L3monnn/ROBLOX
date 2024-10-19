@@ -222,7 +222,7 @@ local function initCubes()
     end
 
     for _, cube in pairs(Cubes:GetDescendants()) do
-        if cube:IsA("Model") and cube.Parent:IsA("Folder") and cube:WaitForChild("Main") then
+        if cube:IsA("Model") and cube.Parent:IsA("Folder") then
             Main[cube.Name] = cube
 
             task.spawn(processCube, cube)
@@ -230,8 +230,9 @@ local function initCubes()
     end
 
     CubeAddedConn = Cubes.DescendantAdded:Connect(function(Object)
-        if Object:IsA("Model") and Object:WaitForChild("Main") then
+        if Object:IsA("Model") then
             Main[Object.Name] = Object
+            print("Ok")
     
             local dontDetect = false
 
