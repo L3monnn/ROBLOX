@@ -52,7 +52,9 @@ player.CharacterAdded:Connect(function(character)
 end)
 
 local function CandyCornFarm()
-    CandyFarmEnabled = true
+    if not CandyFarmEnabled then
+        return
+    end
 
     for i, v in pairs(game:GetService("Workspace").CandyCorns:GetDescendants()) do
         if v.Name == "TouchInterest" and v.Parent then
@@ -62,8 +64,10 @@ local function CandyCornFarm()
         end
     end
 
-    game:GetService("Workspace").CandyCorns.DescendantAdded:Connect(function(Object)
-        if not CandyCornFarm then
+    local candyConnection
+    candyConnection = game:GetService("Workspace").CandyCorns.DescendantAdded:Connect(function(Object)
+        if not CandyFarmEnabled then
+            candyConnection:Disconnect()
             return
         end
 
@@ -80,10 +84,10 @@ end
 FarmSection:addToggle({
     title = "Candy Farm (firetouchinterest)",
     callback = function(value)
+        CandyFarmEnabled = value
+
         if value then
             CandyCornFarm()
-        else
-            CandyFarmEnabled = value
         end
     end
 })
