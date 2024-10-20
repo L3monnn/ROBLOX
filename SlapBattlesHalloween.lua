@@ -7,7 +7,7 @@ local Venyx = Library.new({
 --// tab
 local MainTab = Venyx:addPage({
     title = "Main",
-    icon = 16146187568
+    icon = 5012544693
 })
 
 --// section
@@ -95,4 +95,10 @@ ExtraSection:addButton({
 
         teleportService:Teleport(game.PlaceId, player)
     end
+})
+
+-- // Load
+Venyx:SelectPage({
+    page = Venyx.pages[1], 
+    toggle = true
 })
