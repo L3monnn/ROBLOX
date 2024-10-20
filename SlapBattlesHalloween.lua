@@ -43,10 +43,13 @@ CreditsSection:addKeybind({
 --// init functions
 local teleportService = game:GetService("TeleportService")
 local player = game.Players.LocalPlayer
+local Character = player.Character
 
 local CandyFarmEnabled = false
 
-local playerHead = game.Players.LocalPlayer.Character.Head
+player.CharacterAdded:Connect(function(character)
+    Character = character
+end)
 
 local function CandyCornFarm()
     CandyFarmEnabled = true
@@ -54,8 +57,8 @@ local function CandyCornFarm()
     for i, v in pairs(game:GetService("Workspace").CandyCorns:GetDescendants()) do
         if v.Name == "TouchInterest" and v.Parent then
             
-            firetouchinterest(playerHead, v.Parent, 0)
-            firetouchinterest(playerHead, v.Parent, 1)
+            firetouchinterest(Character.Head, v.Parent, 0)
+            firetouchinterest(Character.Head, v.Parent, 1)
         end
     end
 
@@ -66,8 +69,8 @@ local function CandyCornFarm()
 
         if Object.name == "TouchInterest" and Object.Parent then
 
-            firetouchinterest(playerHead, Object.Parent, 0)
-            firetouchinterest(playerHead, Object.Parent, 1)
+            firetouchinterest(Character.Head, Object.Parent, 0)
+            firetouchinterest(Character.Head, Object.Parent, 1)
         end
 
         task.wait()
