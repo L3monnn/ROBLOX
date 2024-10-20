@@ -66,8 +66,8 @@ local function CandyCornFarm()
 
         if Object.name == "TouchInterest" and Object.Parent then
 
-            firetouchinterest(playerHead, v.Parent, 0)
-            firetouchinterest(playerHead, v.Parent, 1)
+            firetouchinterest(playerHead, Object.Parent, 0)
+            firetouchinterest(playerHead, Object.Parent, 1)
         end
 
         task.wait()
