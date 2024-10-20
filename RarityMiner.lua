@@ -232,12 +232,17 @@ local function initCubes()
     CubeAddedConn = Cubes.DescendantAdded:Connect(function(Object)
         if Object:IsA("Model") then
             Main[Object.Name] = Object
-            print("Ok")
     
             local dontDetect = false
 
+            local cubePart = Object.Main
+            local cubePart2
+            if not cubePart then
+                cubePart2 = Object:WaitForChild("Main")
+            end
+
             local playerPos = player.Character.HumanoidRootPart.Position
-            local cubePos = Object.Main.Position
+            local cubePos = cubePart.Position or cubePart2.Position
             local distance = (cubePos - playerPos).Magnitude
 
             if AutoMineBlocks and distance <= MineAuraRadius then
