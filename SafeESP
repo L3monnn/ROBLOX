@@ -1,0 +1,137 @@
+if getgenv().HAX_LOADED then
+	return
+end
+
+pcall(function() getgenv().HAX_LOADED = true end)
+if not game:IsLoaded() then game.Loaded:Wait() end
+
+function missing(t, f, fallback)
+	if type(f) == t then return f end
+	return fallback
+end
+
+Services = setmetatable({}, {
+	__index = function(self, name)
+		local success, cache = pcall(function()
+			return cloneref(game:GetService(name))
+		end)
+		if success then
+			rawset(self, name, cache)
+			return cache
+		else
+			error("Invalid Service: " .. tostring(name))
+		end
+	end
+})
+
+Players = Services.Players
+HttpService = Services.HttpService
+UserInputService = Services.UserInputService
+COREGUI = Services.CoreGui
+
+-- Arrows ESP: shows screen-edge arrows pointing to other players
+ArrowsESP = {}
+do
+	local RunService = Services.RunService
+	local Camera = workspace.CurrentCamera
+	local LocalPlayer = Players.LocalPlayer
+	local gui = Instance.new("ScreenGui")
+	gui.Name = "Op1Hax_ArrowsESP"
+	gui.ResetOnSpawn = false
+	gui.Parent = COREGUI
+
+	local pool = {}
+	local connection
+	local enabled = true
+
+	-- Config
+	ArrowsESP.TeamFilter = true -- hides teammates when true
+	local ArrowSize = 28 -- pixel size of arrow UI
+
+	local function getArrowForPlayer(plr)
+		if pool[plr] then return pool[plr] end
+		local label = Instance.new("TextLabel")
+		label.Size = UDim2.fromOffset(ArrowSize, ArrowSize)
+		label.BackgroundTransparency = 1
+		label.Text = "▲"
+		label.Font = Enum.Font.GothamBlack
+		label.TextSize = math.floor(ArrowSize * 0.78)
+		label.TextColor3 = Color3.new(1, 1, 1)
+		label.AnchorPoint = Vector2.new(0.5, 0.5)
+		label.Visible = false
+		label.Parent = gui
+		pool[plr] = label
+		return label
+	end
+
+	local function hideAll()
+		for _, lbl in pairs(pool) do lbl.Visible = false end
+	end
+
+	local function onRender()
+		if not enabled then return end
+		Camera = Camera or workspace.CurrentCamera
+		if not Camera then return end
+		local viewportSize = Camera.ViewportSize
+		local screenCenter = Vector2.new(viewportSize.X / 2, viewportSize.Y / 2)
+		local margin = 36
+		local halfSize = Vector2.new(viewportSize.X / 2 - margin, viewportSize.Y / 2 - margin)
+
+		for _, plr in pairs(Players:GetPlayers()) do
+			local label = getArrowForPlayer(plr)
+			if plr == LocalPlayer or not plr.Character or not plr.Character:FindFirstChild("Head") then
+				if label then label.Visible = false end
+			else
+				if ArrowsESP.TeamFilter and LocalPlayer.Team and plr.Team and LocalPlayer.Team == plr.Team then
+					label.Visible = false
+				else
+					local head = plr.Character.Head
+					local screenPoint, onScreen = Camera:WorldToViewportPoint(head.Position)
+					if onScreen and screenPoint.Z > 0 then
+						label.Visible = false
+					else
+						local dir = Vector2.new(screenPoint.X, screenPoint.Y) - screenCenter
+						if dir.Magnitude == 0 then dir = Vector2.new(0.0001, 0) end
+						local ndir = dir.Unit
+						local pos = screenCenter + Vector2.new(math.clamp(ndir.X * halfSize.X, -halfSize.X, halfSize.X), math.clamp(ndir.Y * halfSize.Y, -halfSize.Y, halfSize.Y))
+						local posX = math.clamp(pos.X, margin, viewportSize.X - margin)
+						local posY = math.clamp(pos.Y, margin, viewportSize.Y - margin)
+						label.Position = UDim2.new(0, posX, 0, posY)
+						local rot = (math.deg(math.atan2(ndir.Y, ndir.X)) + 90) % 360
+						label.Rotation = rot
+						label.Visible = true
+					end
+				end
+			end
+		end
+	end
+
+	function ArrowsESP:Toggle(state)
+		enabled = not not state
+		if not enabled then hideAll() end
+	end
+
+	function ArrowsESP:Start()
+		if connection then return end
+		connection = RunService.RenderStepped:Connect(onRender)
+	end
+
+	function ArrowsESP:Stop()
+		if connection then connection:Disconnect(); connection = nil end
+		for _, lbl in pairs(pool) do lbl:Destroy() end
+		pool = {}
+		if gui then gui:Destroy(); gui = nil end
+	end
+
+	ArrowsESP:Start()
+end
+
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+	if gameProcessed then return end
+
+	if input.KeyCode == Enum.KeyCode.P then
+		ArrowsESP:Toggle(not ArrowsESP.Enabled)
+	end
+end)
+
+ArrowsESP:Toggle(true)
