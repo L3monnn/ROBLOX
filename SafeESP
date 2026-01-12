@@ -5,12 +5,7 @@ end
 pcall(function() getgenv().HAX_LOADED = true end)
 if not game:IsLoaded() then game.Loaded:Wait() end
 
-function missing(t, f, fallback)
-	if type(f) == t then return f end
-	return fallback
-end
-
-Services = setmetatable({}, {
+local Services = setmetatable({}, {
 	__index = function(self, name)
 		local success, cache = pcall(function()
 			return cloneref(game:GetService(name))
@@ -24,106 +19,241 @@ Services = setmetatable({}, {
 	end
 })
 
-Players = Services.Players
-HttpService = Services.HttpService
-UserInputService = Services.UserInputService
-COREGUI = Services.CoreGui
+local Players = Services.Players
+local HttpService = Services.HttpService
+local RunService = Services.RunService
+local UserInputService = Services.UserInputService
+local CoreGui = Services.CoreGui
 
--- Arrows ESP: shows screen-edge arrows pointing to other players
-ArrowsESP = {}
+local LocalPlayer = Players.LocalPlayer
+local ConcurrentPlayers = {}
+
 do
-	local RunService = Services.RunService
-	local Camera = workspace.CurrentCamera
-	local LocalPlayer = Players.LocalPlayer
-	local gui = Instance.new("ScreenGui")
-	gui.Name = "Op1Hax_ArrowsESP"
-	gui.ResetOnSpawn = false
-	gui.Parent = COREGUI
+	for _, player in pairs(Players:GetPlayers()) do
+		ConcurrentPlayers[player.UserId] = player
+	end
+end
 
-	local pool = {}
-	local connection
+Players.PlayerAdded:Connect(function(player)
+	ConcurrentPlayers[player.UserId] = player
+end)
+
+Players.PlayerRemoving:Connect(function(player)
+	ConcurrentPlayers[player.UserId] = nil
+end)
+
+-- ===== ARROWS ESP =====
+-- Minimap-style arrows at bottom center of screen in a circle
+local ArrowsESP = {}
+do
+	local minimapGui = Instance.new("ScreenGui")
+	minimapGui.Name = "Op1Hax_ArrowsESP"
+	minimapGui.ResetOnSpawn = false
+	minimapGui.Parent = CoreGui
+
+	local minimapContainer = Instance.new("Frame")
+	minimapContainer.Name = "MinimapContainer"
+	minimapContainer.Size = UDim2.fromOffset(200, 200)
+	minimapContainer.Position = UDim2.new(0.5, -100, 1, -220) -- Bottom center
+	minimapContainer.AnchorPoint = Vector2.new(0.5, 0.5)
+	minimapContainer.BackgroundColor3 = Color3.new(0, 0, 0)
+	minimapContainer.BackgroundTransparency = 0.7
+	minimapContainer.BorderSizePixel = 0
+	minimapContainer.Parent = minimapGui
+
+	local corner = Instance.new("UICorner")
+	corner.CornerRadius = UDim.new(1, 0)
+	corner.Parent = minimapContainer
+
+	local stroke = Instance.new("UIStroke")
+	stroke.Color = Color3.new(1, 1, 1)
+	stroke.Thickness = 2
+	stroke.Transparency = 0.5
+	stroke.Parent = minimapContainer
+
+	local arrowPool = {}
+	local arrowRadius = 70 -- Distance from center for arrow placement
 	local enabled = true
+	local teamFilter = true
 
-	-- Config
-	ArrowsESP.TeamFilter = true -- hides teammates when true
-	local ArrowSize = 28 -- pixel size of arrow UI
+	ArrowsESP.Enabled = enabled
 
-	local function getArrowForPlayer(plr)
-		if pool[plr] then return pool[plr] end
-		local label = Instance.new("TextLabel")
-		label.Size = UDim2.fromOffset(ArrowSize, ArrowSize)
-		label.BackgroundTransparency = 1
-		label.Text = "▲"
-		label.Font = Enum.Font.GothamBlack
-		label.TextSize = math.floor(ArrowSize * 0.78)
-		label.TextColor3 = Color3.new(1, 1, 1)
-		label.AnchorPoint = Vector2.new(0.5, 0.5)
-		label.Visible = false
-		label.Parent = gui
-		pool[plr] = label
-		return label
+	local function getOrCreateArrow(player)
+		if arrowPool[player] then return arrowPool[player] end
+		local arrow = Instance.new("TextLabel")
+		arrow.Size = UDim2.fromOffset(24, 24)
+		arrow.BackgroundTransparency = 1
+		arrow.Text = "▲"
+		arrow.Font = Enum.Font.GothamBlack
+		arrow.TextSize = 20
+		arrow.TextColor3 = Color3.new(1, 0.2, 0.2) -- Red for enemies
+		arrow.AnchorPoint = Vector2.new(0.5, 0.5)
+		arrow.Visible = false
+		arrow.Parent = minimapContainer
+		arrowPool[player] = arrow
+		return arrow
 	end
 
-	local function hideAll()
-		for _, lbl in pairs(pool) do lbl.Visible = false end
+	local function hideAllArrows()
+		for _, arrow in pairs(arrowPool) do
+			arrow.Visible = false
+		end
 	end
 
-	local function onRender()
-		if not enabled then return end
-		Camera = Camera or workspace.CurrentCamera
-		if not Camera then return end
-		local viewportSize = Camera.ViewportSize
-		local screenCenter = Vector2.new(viewportSize.X / 2, viewportSize.Y / 2)
-		local margin = 36
-		local halfSize = Vector2.new(viewportSize.X / 2 - margin, viewportSize.Y / 2 - margin)
+	local function updateArrows()
+		if not enabled or not LocalPlayer.Character or not LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+			hideAllArrows()
+			return
+		end
 
-		for _, plr in pairs(Players:GetPlayers()) do
-			local label = getArrowForPlayer(plr)
-			if plr == LocalPlayer or not plr.Character or not plr.Character:FindFirstChild("Head") then
-				if label then label.Visible = false end
-			else
-				if ArrowsESP.TeamFilter and LocalPlayer.Team and plr.Team and LocalPlayer.Team == plr.Team then
-					label.Visible = false
-				else
-					local head = plr.Character.Head
-					local screenPoint, onScreen = Camera:WorldToViewportPoint(head.Position)
-					if onScreen and screenPoint.Z > 0 then
-						label.Visible = false
-					else
-						local dir = Vector2.new(screenPoint.X, screenPoint.Y) - screenCenter
-						if dir.Magnitude == 0 then dir = Vector2.new(0.0001, 0) end
-						local ndir = dir.Unit
-						local pos = screenCenter + Vector2.new(math.clamp(ndir.X * halfSize.X, -halfSize.X, halfSize.X), math.clamp(ndir.Y * halfSize.Y, -halfSize.Y, halfSize.Y))
-						local posX = math.clamp(pos.X, margin, viewportSize.X - margin)
-						local posY = math.clamp(pos.Y, margin, viewportSize.Y - margin)
-						label.Position = UDim2.new(0, posX, 0, posY)
-						local rot = (math.deg(math.atan2(ndir.Y, ndir.X)) + 90) % 360
-						label.Rotation = rot
-						label.Visible = true
-					end
-				end
+		local localPos = LocalPlayer.Character.HumanoidRootPart.Position * Vector3.new(1, 0, 1)
+
+		for _, player in pairs(ConcurrentPlayers) do
+			local arrow = getOrCreateArrow(player)
+
+			if player == LocalPlayer or not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then
+				arrow.Visible = false
+				continue
 			end
+
+			if teamFilter and LocalPlayer.Team and player.Team and LocalPlayer.Team == player.Team then
+				arrow.Visible = false
+				continue
+			end
+
+			local targetPos = player.Character.HumanoidRootPart.Position * Vector3.new(1, 0, 1)
+			local diff = targetPos - localPos
+			if diff.Magnitude < 1e-6 then
+				arrow.Visible = false
+				continue
+			end
+			local dir = diff.Unit
+
+			-- Position arrow in circle around minimap
+			local angle = math.atan2(-dir.Z, dir.X)
+			local x = math.cos(angle) * arrowRadius
+			local y = math.sin(angle) * arrowRadius
+
+			arrow.Position = UDim2.fromOffset(100 + x, 100 + y)
+			arrow.Rotation = math.deg(angle) + 90
+			arrow.Visible = true
 		end
 	end
 
 	function ArrowsESP:Toggle(state)
 		enabled = not not state
-		if not enabled then hideAll() end
+		ArrowsESP.Enabled = enabled
+		if not enabled then hideAllArrows() end
 	end
 
-	function ArrowsESP:Start()
-		if connection then return end
-		connection = RunService.RenderStepped:Connect(onRender)
+	function ArrowsESP:SetTeamFilter(state)
+		teamFilter = not not state
 	end
 
-	function ArrowsESP:Stop()
-		if connection then connection:Disconnect(); connection = nil end
-		for _, lbl in pairs(pool) do lbl:Destroy() end
-		pool = {}
-		if gui then gui:Destroy(); gui = nil end
+	ArrowsESP.Connection = RunService.RenderStepped:Connect(updateArrows)
+end
+
+-- ===== CHAMS ESP =====
+-- Hollow outline highlight for players
+local ChamsESP = {}
+do
+	local chamFolder = Instance.new("Folder")
+	chamFolder.Name = "Op1Hax_Chams"
+	chamFolder.Parent = CoreGui
+
+	local chamCache = {}
+	local enabled = true
+	local teamFilter = true
+	local outlineColor = Color3.new(1, 1, 1)
+	local outlineTransparency = 0.2
+
+	ChamsESP.Enabled = enabled
+
+	local function createCham(player)
+		if not player.Character then return end
+		if chamCache[player] then return end
+
+		local highlight = Instance.new("Highlight")
+		highlight.Adornee = player.Character
+		highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+		highlight.FillTransparency = 1
+		highlight.OutlineColor = outlineColor
+		highlight.OutlineTransparency = outlineTransparency
+		highlight.Parent = chamFolder
+
+		chamCache[player] = highlight
 	end
 
-	ArrowsESP:Start()
+	local function removeCham(player)
+		if chamCache[player] then
+			chamCache[player]:Destroy()
+			chamCache[player] = nil
+		end
+	end
+
+	local function updateChams()
+		if not enabled or not LocalPlayer.Character then return end
+
+		for _, player in pairs(ConcurrentPlayers) do
+			if player == LocalPlayer then
+				removeCham(player)
+			else
+				if player.Character then
+					if teamFilter and LocalPlayer.Team and player.Team and LocalPlayer.Team == player.Team then
+						removeCham(player)
+					else
+						createCham(player)
+					end
+				else
+					removeCham(player)
+				end
+			end
+		end
+	end
+
+	function ChamsESP:Toggle(state)
+		enabled = not not state
+		ChamsESP.Enabled = enabled
+		if not enabled then
+			for player in pairs(chamCache) do
+				removeCham(player)
+			end
+		end
+	end
+
+	function ChamsESP:SetTeamFilter(state)
+		teamFilter = not not state
+		updateChams()
+	end
+
+	function ChamsESP:SetColor(r, g, b)
+		outlineColor = Color3.new(r, g, b)
+		for _, highlight in pairs(chamCache) do
+			highlight.OutlineColor = outlineColor
+		end
+	end
+
+	function ChamsESP:SetTransparency(val)
+		outlineTransparency = math.clamp(val, 0, 1)
+		for _, highlight in pairs(chamCache) do
+			highlight.OutlineTransparency = outlineTransparency
+		end
+	end
+
+	-- Auto-create chams for new players
+	Players.PlayerAdded:Connect(function(player)
+		player.CharacterAdded:Connect(function()
+			if enabled then
+				task.wait(0.1)
+				createCham(player)
+			end
+		end)
+		if player.Character and enabled then
+			createCham(player)
+		end
+	end)
+
+	ChamsESP.UpdateConnection = RunService.Heartbeat:Connect(updateChams)
 end
 
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
@@ -131,7 +261,7 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
 
 	if input.KeyCode == Enum.KeyCode.P then
 		ArrowsESP:Toggle(not ArrowsESP.Enabled)
+	elseif input.KeyCode == Enum.KeyCode.L then
+		ChamsESP:Toggle(not ChamsESP.Enabled)
 	end
 end)
-
-ArrowsESP:Toggle(true)
