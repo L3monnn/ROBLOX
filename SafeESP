@@ -112,19 +112,33 @@ do
 	local teamFilter = true
 
 	local ArrowColor = Color3.new(1, 1, 1)
-	local ArrowSize = 12
-	local ArrowTransparency = 0
 
 	ArrowsESP.Enabled = enabled
 
+	local Folder = Instance.new('Folder')
+	Folder.Name = "Op1Hax_ArrowsESP"
+	Folder.Parent = CoreGui
+
+	if not isfolder("Op1Hax") then
+		makefolder("Op1Hax")
+	end
+
+	if not isfile("Op1Hax/Arrow.png") then
+		writefile("Op1Hax/Arrow.png", game:HttpGet("https://raw.githubusercontent.com/7GrandDadPGN/VapeV4ForRoblox/refs/heads/main/assets/new/arrowmodule.png"))
+	end
+
 	local function createArrow()
-		local tri = Drawing.new("Triangle")
-		tri.Visible = false
-		tri.Color = ArrowColor
-		tri.Filled = true
-		tri.Thickness = 2
-		tri.Transparency = ArrowTransparency
-		return tri
+		local arrow = Instance.new('ImageLabel')
+		arrow.Size = UDim2.fromOffset(256, 256)
+		arrow.Position = UDim2.fromScale(0.5, 0.5)
+		arrow.AnchorPoint = Vector2.new(0.5, 0.5)
+		arrow.BackgroundTransparency = 1
+		arrow.BorderSizePixel = 0
+		arrow.Visible = false
+		arrow.Image = getcustomasset("Op1Hax/Arrow.png")
+		arrow.ImageColor3 = ArrowColor
+		arrow.Parent = Folder
+		return arrow
 	end
 
 	local function updateArrows()
@@ -132,16 +146,12 @@ do
 		if not LocalPlayer.Character then return end
 		if not LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then return end
 
-		-- Cleanup
 		for uid, arrow in pairs(arrowPool) do
 			if not ConcurrentPlayers[uid] then
 				arrow:Destroy()
 				arrowPool[uid] = nil
 			end
 		end
-
-		local viewport = Camera.ViewportSize
-		local center = viewport / 2
 
 		for uid, player in pairs(ConcurrentPlayers) do
 			if player == LocalPlayer then continue end
@@ -155,60 +165,18 @@ do
 				continue
 			end
 
-			local screenPos, onScreen = Camera:WorldToScreenPoint(player.Character.HumanoidRootPart.Position)
-        	local screen2D = Vector2.new(screenPos.X, screenPos.Y)
-
-			-- Create arrow if missing
 			local arrow = arrowPool[player.UserId]
 			if not arrow then
 				arrow = createArrow()
 				arrowPool[player.UserId] = arrow
 			end
 
-			-- If behind camera, force off-screen
-			if screenPos.Z < 0 then
-				onScreen = false
-				screen2D = center - (screen2D - center)
-			end
-
+			local _, onScreen = Camera:WorldToScreenPoint(player.Character.HumanoidRootPart.Position)
 
 			if not onScreen then
-				local dir = screen2D - center
-
-				if dir.Magnitude < 1 then
-					dir = Vector2.new(1, 0)
-				else
-					dir = dir.Unit
-				end
-
-				if screenPos.Z < 0 then
-					dir = -dir
-				end
-
-				local arrowDist = math.min(center.X, center.Y) - 25
-				local arrowPos = center + dir * arrowDist
-
-				local angle = math.atan2(dir.Y, dir.X)
-
-				local a = arrowPos + Vector2.new(math.cos(angle) * ArrowSize, math.sin(angle) * ArrowSize)
-				local b = arrowPos + Vector2.new(math.cos(angle + math.rad(140)) * ArrowSize, math.sin(angle + math.rad(140)) * ArrowSize)
-				local c = arrowPos + Vector2.new(math.cos(angle - math.rad(140)) * ArrowSize, math.sin(angle - math.rad(140)) * ArrowSize)
-
-				-- Clamp to screen to avoid collapse
-				local function safe(v)
-					return Vector2.new(
-						math.clamp(v.X, 0, Camera.ViewportSize.X),
-						math.clamp(v.Y, 0, Camera.ViewportSize.Y)
-					)
-				end
-
-				arrow.PointA = safe(a)
-				arrow.PointB = safe(b)
-				arrow.PointC = safe(c)
-
-				arrow.Filled = true
-				arrow.Thickness = 1
-				arrow.Color = ArrowColor
+				local dir = CFrame.lookAlong(Camera.CFrame.Position, Camera.CFrame.LookVector * Vector3.new(1, 0, 1)):PointToObjectSpace(player.Character.HumanoidRootPart.Position)
+				arrow.Rotation = math.deg(math.atan2(dir.Z, dir.X))
+				
 				arrow.Visible = true
 			else
 				arrow.Visible = false
