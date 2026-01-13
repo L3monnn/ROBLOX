@@ -130,7 +130,7 @@ do
 		
 		text.Visible = false
 
-		text.Color3 = ArrowColor
+		text.TextColor3 = ArrowColor
 		text.Font = Enum.Font.SourceSansBold
 		text.Text = "▲"
 		text.TextXAlignment = Enum.TextXAlignment.Center
