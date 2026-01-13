@@ -99,68 +99,60 @@ local function sendWebhook(player)
 end
 
 -- ===== ARROWS ESP =====
--- Minimap-style arrows at bottom center of screen in a circle
+-- Drawing library-based arrows pointing to off-screen targets
 local ArrowsESP = {}
 do
-	local minimapGui = Instance.new("ScreenGui")
-	minimapGui.Name = "Op1Hax_ArrowsESP"
-	minimapGui.ResetOnSpawn = false
-	minimapGui.Parent = CoreGui
-
-	local minimapContainer = Instance.new("Frame")
-	minimapContainer.Name = "MinimapContainer"
-	minimapContainer.Size = UDim2.fromScale(0.067, 0.067)
-	minimapContainer.Position = UDim2.new(0.5, 0, 0.9, 0)
-	minimapContainer.AnchorPoint = Vector2.new(0.5, 0.5)
-	minimapContainer.BackgroundColor3 = Color3.new(0, 0, 0)
-	minimapContainer.BackgroundTransparency = 0.9
-	minimapContainer.BorderSizePixel = 0
-	minimapContainer.Parent = minimapGui
-
-	local corner = Instance.new("UICorner")
-	corner.CornerRadius = UDim.new(1, 0)
-	corner.Parent = minimapContainer
-
-	local stroke = Instance.new("UIStroke")
-	stroke.Color = Color3.new(1, 1, 1)
-	stroke.Thickness = 2
-	stroke.Transparency = 0.5
-	stroke.Parent = minimapContainer
-
 	local arrowPool = {}
-	local arrowRadius = 70
-	local enabled = true
+	local enabled = false
 	local teamFilter = true
+	
+	-- Arrow configuration
+	local DistFromCenter = 10
+	local TriangleHeight = 5
+	local TriangleWidth = 5
+	local TriangleFilled = true
+	local TriangleTransparency = 0
+	local TriangleThickness = 1
+	local TriangleColor = Color3.new(1, 1, 1)
 
 	ArrowsESP.Enabled = enabled
 
-	local function createArrow(uid)
-		local arrow = Instance.new("TextLabel")
-		arrow.Name = "Arrow_" .. uid
-		arrow.Size = UDim2.fromOffset(24, 24)
-		arrow.BackgroundTransparency = 1
-		arrow.Text = "▲"
-		arrow.Font = Enum.Font.GothamBlack
-		arrow.TextSize = 20
-		arrow.TextColor3 = Color3.new(1, 1, 1) -- Red for enemies
-		arrow.AnchorPoint = Vector2.new(0.5, 0.5)
-		arrow.Visible = false
-		arrow.Parent = minimapContainer
-		return arrow
+	local function createArrow()
+		local triangle = Drawing.new("Triangle")
+		triangle.Visible = false
+		triangle.Color = TriangleColor
+		triangle.Filled = TriangleFilled
+		triangle.Thickness = TriangleThickness
+		triangle.Transparency = 1 - TriangleTransparency
+		return triangle
 	end
 
-	local function hideAllArrows()
-		for _, arrow in pairs(arrowPool) do
-			arrow.Visible = false
+	local function rotateVector(v, angle)
+		angle = math.rad(angle)
+		local cos_a = math.cos(angle)
+		local sin_a = math.sin(angle)
+		return Vector2.new(v.x * cos_a - v.y * sin_a, v.x * sin_a + v.y * cos_a)
+	end
+
+	local function getRelative(targetPos, playerChar)
+		if not playerChar or not playerChar:FindFirstChild("HumanoidRootPart") then
+			return Vector3.new(0, 0, 0)
 		end
+		local playerPos = playerChar.HumanoidRootPart.Position
+		local relative = Camera.CFrame:PointToObjectSpace(targetPos)
+		return Vector3.new(relative.X, relative.Y, relative.Z)
+	end
+
+	local function relativeToCenter(v)
+		return Camera.ViewportSize / 2 - v
 	end
 
 	local function updateArrows()
-		if not enabled or not LocalPlayer.Character or not LocalPlayer.Character:FindFirstChild("HumanoidRootPart") or not Camera then
-			hideAllArrows()
+		if not enabled or not LocalPlayer.Character or not LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
 			return
 		end
 
+		-- Clean up arrows for players who left
 		for uid, arrow in pairs(arrowPool) do
 			if not ConcurrentPlayers[uid] then
 				arrow:Destroy()
@@ -168,19 +160,7 @@ do
 			end
 		end
 
-		local localHRP = LocalPlayer.Character.HumanoidRootPart
-		local localPos = localHRP.Position * Vector3.new(1, 0, 1)
-
-		local camLook = Camera.CFrame.LookVector
-		local camFwdXZ = camLook * Vector3.new(1, 0, 1)
-		local camFwdMag = camFwdXZ.Magnitude
-		if camFwdMag < 1e-6 then
-			hideAllArrows()
-			return
-		end
-		camFwdXZ = camFwdXZ.Unit
-		local angle_cam = math.atan2(camFwdXZ.Z, camFwdXZ.X)
-
+		-- Update arrows for active players
 		for uid, player in pairs(ConcurrentPlayers) do
 			if player == LocalPlayer or not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then
 				local arrow = arrowPool[uid]
@@ -190,18 +170,7 @@ do
 				continue
 			end
 
-			local targetHRP = player.Character.HumanoidRootPart
-			local targetPos = targetHRP.Position * Vector3.new(1, 0, 1)
-			local diff = targetPos - localPos
-			local diffMag = diff.Magnitude
-			if diffMag < 5 then  -- Hide if too close
-				local arrow = arrowPool[uid]
-				if arrow then
-					arrow.Visible = false
-				end
-				continue
-			end
-
+			-- Check team filter
 			if teamFilter and LocalPlayer.Team and player.Team and LocalPlayer.Team == player.Team then
 				local arrow = arrowPool[uid]
 				if arrow then
@@ -210,38 +179,63 @@ do
 				continue
 			end
 
-			-- Valid target: compute camera-relative direction
-			local dirXZ = diff.Unit
-			local angle_dir = math.atan2(dirXZ.Z, dirXZ.X)
-			local relative = angle_dir - angle_cam
-			relative = ((relative + math.pi) % (math.pi * 2)) - math.pi  -- Normalize to -pi..pi
-			local screen_theta = relative - math.pi / 2  -- Rotate so forward (0) is at top
-
-			local x = math.cos(screen_theta) * arrowRadius
-			local y = math.sin(screen_theta) * arrowRadius
+			-- Get target position and check if on screen
+			local targetPos = player.Character.HumanoidRootPart.Position
+			local onScreen, screenPos = Camera:WorldToViewportPoint(targetPos)
 
 			local arrow = arrowPool[uid]
 			if not arrow then
-				arrow = createArrow(uid)
+				arrow = createArrow()
 				arrowPool[uid] = arrow
 			end
 
-			arrow.Position = UDim2.fromOffset(100 + x, 100 + y)
-			arrow.Rotation = math.deg(screen_theta) + 90
-			arrow.Visible = true
+			if not onScreen then
+				-- Target is off-screen, draw arrow pointing towards it
+				local rel = getRelative(targetPos, LocalPlayer.Character)
+				local direction = Vector2.new(rel.X, rel.Z).Unit
+				
+				-- Calculate triangle points
+				local base = direction * DistFromCenter
+				local sideLength = TriangleWidth / 2
+				local baseL = base + rotateVector(direction, 90) * sideLength
+				local baseR = base + rotateVector(direction, -90) * sideLength
+				local tip = direction * (DistFromCenter + TriangleHeight)
+
+				-- Position relative to screen center
+				local centerOffset = relativeToCenter(Vector2.new(0, 0))
+				arrow.PointA = relativeToCenter(baseL) + centerOffset
+				arrow.PointB = relativeToCenter(baseR) + centerOffset
+				arrow.PointC = relativeToCenter(tip) + centerOffset
+				arrow.Visible = true
+			else
+				arrow.Visible = false
+			end
 		end
 	end
 
 	function ArrowsESP:Toggle(state)
-		enabled = not not state
+		enabled = state
 		ArrowsESP.Enabled = enabled
 		if not enabled then
-			hideAllArrows()
+			for _, arrow in pairs(arrowPool) do
+				arrow.Visible = false
+			end
 		end
 	end
 
 	function ArrowsESP:SetTeamFilter(state)
 		teamFilter = not not state
+	end
+
+	function ArrowsESP:SetColor(r, g, b)
+		TriangleColor = Color3.new(r, g, b)
+		for _, arrow in pairs(arrowPool) do
+			arrow.Color = TriangleColor
+		end
+	end
+
+	function ArrowsESP:SetDistance(dist)
+		DistFromCenter = dist
 	end
 
 	ArrowsESP.Connection = RunService.RenderStepped:Connect(updateArrows)
@@ -255,10 +249,10 @@ do
 	chamFolder.Parent = CoreGui
 
 	local chamCache = {}
-	local enabled = true
+	local enabled = false
 	local teamFilter = true
 	local outlineColor = Color3.new(1, 1, 1)
-	local outlineTransparency = 0.2
+	local outlineTransparency = 0.8
 
 	ChamsESP.Enabled = enabled
 
