@@ -104,7 +104,7 @@ local function sendWebhook(player)
 end
 
 -- ===== ARROWS ESP =====
--- Drawing library-based arrows pointing to off-screen targets
+-- Drawing library triangles for off-screen targets
 local ArrowsESP = {}
 do
 	local arrowPool = {}
@@ -113,32 +113,27 @@ do
 	
 	-- Arrow configuration
 	local ArrowColor = Color3.new(1, 1, 1)
-
-	local Folder = Instance.new("Folder")
-	Folder.Name = "Op1Hax_Arrows"
-	Folder.Parent = CoreGui
+	local ArrowSize = 12
+	local ArrowTransparency = 0
 
 	ArrowsESP.Enabled = enabled
 
+	local function clampToScreen(pos, padding)
+		local viewport = Camera.ViewportSize
+		return Vector2.new(
+			math.clamp(pos.X, padding, viewport.X - padding),
+			math.clamp(pos.Y, padding, viewport.Y - padding)
+		)
+	end
+
 	local function createArrow()
-		local text = Instance.new("TextLabel")
-
-		text.Size = UDim2.fromOffset(256, 256)
-		text.Position = UDim2.fromScale(0.5, 0.5)
-		text.AnchorPoint = Vector2.new(0.5, 0.5)
-		text.BackgroundTransparency = 1
-		
-		text.Visible = false
-
-		text.TextColor3 = ArrowColor
-		text.Font = Enum.Font.SourceSansBold
-		text.Text = "▲"
-		text.TextXAlignment = Enum.TextXAlignment.Center
-		text.TextYAlignment = Enum.TextYAlignment.Center
-		text.TextTransparency = 0.5
-
-		text.Parent = Folder
-		return text
+		local triangle = Drawing.new("Triangle")
+		triangle.Visible = false
+		triangle.Color = ArrowColor
+		triangle.Filled = true
+		triangle.Thickness = 1
+		triangle.Transparency = ArrowTransparency
+		return triangle
 	end
 
 	local function updateArrows()
@@ -154,8 +149,8 @@ do
 			end
 		end
 
-		local localChar = LocalPlayer.Character
-		local localHRP = localChar.HumanoidRootPart
+		local viewport = Camera.ViewportSize
+		local center = viewport / 2
 
 		-- Update arrows for active players
 		for uid, player in pairs(ConcurrentPlayers) do
@@ -176,22 +171,51 @@ do
 				continue
 			end
 
-			local _, onScreen = Camera:WorldToViewportPoint(player.Character.HumanoidRootPart.Position)
-			print(player.Name, onScreen)
+			-- Get target position and check if on screen
+			local targetPos = player.Character.HumanoidRootPart.Position
+			local screenPos, onScreen = Camera:WorldToScreenPoint(targetPos)
+			local screenPos2D = Vector2.new(screenPos.X, screenPos.Y)
 
 			local arrow = arrowPool[uid]
 			if not arrow then
 				arrow = createArrow()
 				arrowPool[uid] = arrow
-			elseif onScreen then
-				arrow.Visible = false
 			end
 
 			if not onScreen then
-				local dir = CFrame.lookAlong(Camera.CFrame.Position, Camera.CFrame.LookVector * Vector3.new(1, 0, 1)):PointToObjectSpace(player.Character.HumanoidRootPart.Position)
-				arrow.Rotation = math.deg(math.atan2(dir.Z, dir.X))
+				-- Calculate direction from center to target
+				local dir = screenPos2D - center
+				if screenPos.Z < 0 then
+					dir = -dir
+				end
+				dir = dir.Unit
 
+				-- Position arrow at fixed distance from center
+				local arrowDist = math.min(center.X, center.Y) - 25
+				local arrowPos = center + dir * arrowDist
+				arrowPos = clampToScreen(arrowPos, 20)
+
+				-- Calculate angle for triangle rotation
+				local angle = math.atan2(dir.Y, dir.X)
+
+				-- Draw triangle pointing towards target
+				arrow.PointA = arrowPos + Vector2.new(
+					math.cos(angle) * ArrowSize,
+					math.sin(angle) * ArrowSize
+				)
+				arrow.PointB = arrowPos + Vector2.new(
+					math.cos(angle + math.rad(140)) * ArrowSize,
+					math.sin(angle + math.rad(140)) * ArrowSize
+				)
+				arrow.PointC = arrowPos + Vector2.new(
+					math.cos(angle - math.rad(140)) * ArrowSize,
+					math.sin(angle - math.rad(140)) * ArrowSize
+				)
+
+				arrow.Color = ArrowColor
 				arrow.Visible = true
+			else
+				arrow.Visible = false
 			end
 		end
 	end
@@ -214,6 +238,17 @@ do
 		ArrowColor = Color3.new(r, g, b)
 		for _, arrow in pairs(arrowPool) do
 			arrow.Color = ArrowColor
+		end
+	end
+
+	function ArrowsESP:SetSize(size)
+		ArrowSize = size
+	end
+
+	function ArrowsESP:SetTransparency(val)
+		ArrowTransparency = math.clamp(val, 0, 1)
+		for _, arrow in pairs(arrowPool) do
+			arrow.Transparency = ArrowTransparency
 		end
 	end
 
