@@ -110,10 +110,10 @@ do
 	local arrowPool = {}
 	local enabled = false
 	local teamFilter = true
-	
+
 	-- Arrow configuration
-	local ArrowColor = Color3.new(1, 1, 1)
-	local ArrowSize = 12
+	local ArrowColor = Color3.new(1, 0, 0)  -- Changed to red for better visibility
+	local ArrowSize = 20  -- Increased for testing
 	local ArrowTransparency = 0
 
 	ArrowsESP.Enabled = enabled
@@ -130,14 +130,21 @@ do
 		local triangle = Drawing.new("Triangle")
 		triangle.Visible = false
 		triangle.Color = ArrowColor
-		triangle.Filled = true
-		triangle.Thickness = 2
+		triangle.Filled = true  -- Set to false temporarily to test outlines
+		triangle.Thickness = 1  -- Reduced to avoid potential filled render issues
 		triangle.Transparency = ArrowTransparency
 		return triangle
 	end
 
+	local function hideAllArrows()
+		for _, arrow in pairs(arrowPool) do
+			arrow.Visible = false
+		end
+	end
+
 	local function updateArrows()
 		if not enabled or not LocalPlayer.Character or not LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+			hideAllArrows()
 			return
 		end
 
@@ -192,23 +199,23 @@ do
 				-- Position arrow at fixed distance from center
 				local arrowDist = math.min(center.X, center.Y) - 25
 				local arrowPos = center + dir * arrowDist
-				arrowPos = clampToScreen(arrowPos, ArrowSize + 10)	
+				arrowPos = clampToScreen(arrowPos, 10)  -- Added padding to avoid edge clipping
 
 				-- Calculate angle for triangle rotation
 				local angle = math.atan2(dir.Y, dir.X)
 
-				-- Draw triangle pointing towards target
+				-- Draw triangle pointing towards target (swapped B/C for CCW winding)
 				arrow.PointA = arrowPos + Vector2.new(
 					math.cos(angle) * ArrowSize,
 					math.sin(angle) * ArrowSize
 				)
 				arrow.PointB = arrowPos + Vector2.new(
-					math.cos(angle + math.rad(140)) * ArrowSize,
-					math.sin(angle + math.rad(140)) * ArrowSize
+					math.cos(angle - math.rad(140)) * ArrowSize,  -- Swapped with +140
+					math.sin(angle - math.rad(140)) * ArrowSize
 				)
 				arrow.PointC = arrowPos + Vector2.new(
-					math.cos(angle - math.rad(140)) * ArrowSize,
-					math.sin(angle - math.rad(140)) * ArrowSize
+					math.cos(angle + math.rad(140)) * ArrowSize,  -- Swapped with -140
+					math.sin(angle + math.rad(140)) * ArrowSize
 				)
 
 				arrow.Color = ArrowColor
