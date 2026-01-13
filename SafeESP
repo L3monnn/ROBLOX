@@ -113,7 +113,7 @@ do
 	
 	-- Arrow configuration
 	local ArrowColor = Color3.new(1, 1, 1)
-	local ArrowSize = 15
+	local ArrowSize = 12
 	local ArrowTransparency = 0
 
 	ArrowsESP.Enabled = enabled
@@ -192,7 +192,7 @@ do
 				-- Position arrow at fixed distance from center
 				local arrowDist = math.min(center.X, center.Y) - 25
 				local arrowPos = center + dir * arrowDist
-				arrowPos = clampToScreen(arrowPos, 20)
+				arrowPos = clampToScreen(arrowPos, ArrowSize + 10)	
 
 				-- Calculate angle for triangle rotation
 				local angle = math.atan2(dir.Y, dir.X)
