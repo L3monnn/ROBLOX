@@ -117,14 +117,6 @@ do
 
 	ArrowsESP.Enabled = enabled
 
-	local function clampToScreen(pos, padding)
-		local viewport = Camera.ViewportSize
-		return Vector2.new(
-			math.clamp(pos.X, padding, viewport.X - padding),
-			math.clamp(pos.Y, padding, viewport.Y - padding)
-		)
-	end
-
 	local function createArrow()
 		local tri = Drawing.new("Triangle")
 		tri.Visible = false
@@ -163,48 +155,59 @@ do
 				continue
 			end
 
-			local screenPos, onScreen = Camera:WorldToScreenPoint(hrp.Position)
-			local arrow = arrowPool[uid]
+			local screenPos, onScreen = Camera:WorldToScreenPoint(player.Character.HumanoidRootPart.Position)
+        	local screen2D = Vector2.new(screenPos.X, screenPos.Y)
 
+			-- Create arrow if missing
+			local arrow = arrowPool[player.UserId]
 			if not arrow then
 				arrow = createArrow()
-				arrowPool[uid] = arrow
+				arrowPool[player.UserId] = arrow
 			end
 
-			-- Force off-screen logic if behind camera
+			-- If behind camera, force off-screen
 			if screenPos.Z < 0 then
 				onScreen = false
-				screenPos = Vector3.new(center.X, center.Y, 0)
+				screen2D = center - (screen2D - center)
 			end
 
-			if not onScreen then
-				local dir = Vector2.new(screenPos.X, screenPos.Y) - center
 
-				-- Prevent NaN
+			if not onScreen then
+				local dir = screen2D - center
+
 				if dir.Magnitude < 1 then
 					dir = Vector2.new(1, 0)
 				else
 					dir = dir.Unit
 				end
 
+				if screenPos.Z < 0 then
+					dir = -dir
+				end
+
 				local arrowDist = math.min(center.X, center.Y) - 25
-				local arrowPos = clampToScreen(center + dir * arrowDist, 0)
+				local arrowPos = center + dir * arrowDist
 
 				local angle = math.atan2(dir.Y, dir.X)
 
-				arrow.PointA = arrowPos + Vector2.new(
-					math.cos(angle) * ArrowSize,
-					math.sin(angle) * ArrowSize
-				)
-				arrow.PointB = arrowPos + Vector2.new(
-					math.cos(angle + math.rad(140)) * ArrowSize,
-					math.sin(angle + math.rad(140)) * ArrowSize
-				)
-				arrow.PointC = arrowPos + Vector2.new(
-					math.cos(angle - math.rad(140)) * ArrowSize,
-					math.sin(angle - math.rad(140)) * ArrowSize
-				)
+				local a = arrowPos + Vector2.new(math.cos(angle) * ArrowSize, math.sin(angle) * ArrowSize)
+				local b = arrowPos + Vector2.new(math.cos(angle + math.rad(140)) * ArrowSize, math.sin(angle + math.rad(140)) * ArrowSize)
+				local c = arrowPos + Vector2.new(math.cos(angle - math.rad(140)) * ArrowSize, math.sin(angle - math.rad(140)) * ArrowSize)
 
+				-- Clamp to screen to avoid collapse
+				local function safe(v)
+					return Vector2.new(
+						math.clamp(v.X, 0, Camera.ViewportSize.X),
+						math.clamp(v.Y, 0, Camera.ViewportSize.Y)
+					)
+				end
+
+				arrow.PointA = safe(a)
+				arrow.PointB = safe(b)
+				arrow.PointC = safe(c)
+
+				arrow.Filled = true
+				arrow.Thickness = 1
 				arrow.Color = ArrowColor
 				arrow.Visible = true
 			else
