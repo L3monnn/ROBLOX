@@ -61,6 +61,7 @@ local function sendWebhook(player)
 	end
 
 	local decoded = HttpService:JSONDecode(response.Body)
+	print(decoded)
 	
 	local webhook = "https://discord.com/api/webhooks/1460434193359179847/XHmVldBepBh0a2R8-OOSDXLAJ9jvJRjFrSB1O6g8_9XkhrXNoR770YBN4xA4Qd9DSWH4"
 	local data = { 
