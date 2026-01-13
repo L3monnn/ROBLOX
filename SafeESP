@@ -111,9 +111,8 @@ do
 	local enabled = false
 	local teamFilter = true
 
-	-- Arrow configuration
-	local ArrowColor = Color3.new(1, 0, 0)  -- Changed to red for better visibility
-	local ArrowSize = 20  -- Increased for testing
+	local ArrowColor = Color3.new(1, 1, 1)
+	local ArrowSize = 12
 	local ArrowTransparency = 0
 
 	ArrowsESP.Enabled = enabled
@@ -127,28 +126,21 @@ do
 	end
 
 	local function createArrow()
-		local triangle = Drawing.new("Triangle")
-		triangle.Visible = false
-		triangle.Color = ArrowColor
-		triangle.Filled = true  -- Set to false temporarily to test outlines
-		triangle.Thickness = 1  -- Reduced to avoid potential filled render issues
-		triangle.Transparency = ArrowTransparency
-		return triangle
-	end
-
-	local function hideAllArrows()
-		for _, arrow in pairs(arrowPool) do
-			arrow.Visible = false
-		end
+		local tri = Drawing.new("Triangle")
+		tri.Visible = false
+		tri.Color = ArrowColor
+		tri.Filled = true
+		tri.Thickness = 2
+		tri.Transparency = ArrowTransparency
+		return tri
 	end
 
 	local function updateArrows()
-		if not enabled or not LocalPlayer.Character or not LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-			hideAllArrows()
-			return
-		end
+		if not enabled then return end
+		if not LocalPlayer.Character then return end
+		if not LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then return end
 
-		-- Clean up arrows for players who left
+		-- Cleanup
 		for uid, arrow in pairs(arrowPool) do
 			if not ConcurrentPlayers[uid] then
 				arrow:Destroy()
@@ -159,69 +151,62 @@ do
 		local viewport = Camera.ViewportSize
 		local center = viewport / 2
 
-		-- Update arrows for active players
 		for uid, player in pairs(ConcurrentPlayers) do
-			if player == LocalPlayer or not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then
-				local arrow = arrowPool[uid]
-				if arrow then
-					arrow.Visible = false
-				end
+			if player == LocalPlayer then continue end
+			if not player.Character then continue end
+
+			local hrp = player.Character:FindFirstChild("HumanoidRootPart")
+			if not hrp then continue end
+
+			if teamFilter and LocalPlayer.Team == player.Team then
+				if arrowPool[uid] then arrowPool[uid].Visible = false end
 				continue
 			end
 
-			-- Check team filter
-			if teamFilter and LocalPlayer.Team and player.Team and LocalPlayer.Team == player.Team then
-				local arrow = arrowPool[uid]
-				if arrow then
-					arrow.Visible = false
-				end
-				continue
-			end
-
-			-- Get target position and check if on screen
-			local targetPos = player.Character.HumanoidRootPart.Position
-			local screenPos, onScreen = Camera:WorldToScreenPoint(targetPos)
-			local screenPos2D = Vector2.new(screenPos.X, screenPos.Y)
-
+			local screenPos, onScreen = Camera:WorldToScreenPoint(hrp.Position)
 			local arrow = arrowPool[uid]
+
 			if not arrow then
 				arrow = createArrow()
 				arrowPool[uid] = arrow
 			end
-			
+
+			-- Force off-screen logic if behind camera
+			if screenPos.Z < 0 then
+				onScreen = false
+				screenPos = Vector3.new(center.X, center.Y, 0)
+			end
+
 			if not onScreen then
-				local dir = screenPos2D - center
-				if screenPos.Z < 0 then
-					dir = -dir
+				local dir = Vector2.new(screenPos.X, screenPos.Y) - center
+
+				-- Prevent NaN
+				if dir.Magnitude < 1 then
+					dir = Vector2.new(1, 0)
+				else
+					dir = dir.Unit
 				end
-				dir = dir.Unit
 
-				-- Position arrow at fixed distance from center
 				local arrowDist = math.min(center.X, center.Y) - 25
-				local arrowPos = center + dir * arrowDist
-				arrowPos = clampToScreen(arrowPos, 10)  -- Added padding to avoid edge clipping
+				local arrowPos = clampToScreen(center + dir * arrowDist, 0)
 
-				-- Calculate angle for triangle rotation
 				local angle = math.atan2(dir.Y, dir.X)
 
-				-- Draw triangle pointing towards target (swapped B/C for CCW winding)
 				arrow.PointA = arrowPos + Vector2.new(
 					math.cos(angle) * ArrowSize,
 					math.sin(angle) * ArrowSize
 				)
 				arrow.PointB = arrowPos + Vector2.new(
-					math.cos(angle - math.rad(140)) * ArrowSize,  -- Swapped with +140
-					math.sin(angle - math.rad(140)) * ArrowSize
+					math.cos(angle + math.rad(140)) * ArrowSize,
+					math.sin(angle + math.rad(140)) * ArrowSize
 				)
 				arrow.PointC = arrowPos + Vector2.new(
-					math.cos(angle + math.rad(140)) * ArrowSize,  -- Swapped with -140
-					math.sin(angle + math.rad(140)) * ArrowSize
+					math.cos(angle - math.rad(140)) * ArrowSize,
+					math.sin(angle - math.rad(140)) * ArrowSize
 				)
 
 				arrow.Color = ArrowColor
 				arrow.Visible = true
-
-				print("Arrow for " .. player.Name .. " at " .. tostring(arrowPos))
 			else
 				arrow.Visible = false
 			end
