@@ -6,10 +6,14 @@ local CoreGui = cloneref(game:GetService("CoreGui"))
 
 local ViewmodelsFolder = workspace:WaitForChild("Viewmodels")
 
+if not getgenv().OP_ToggleKey or getgenv().OP_ToggleKey == Enum.KeyCode.Unknown then
+    getgenv().OP_ToggleKey = Enum.KeyCode.F3
+end
+
 local Chams = {
     Enabled = false,
     Folder = nil,
-    ToggleKey = getgenv().OP_ToggleKey or Enum.KeyCode.F3,
+    ToggleKey = getgenv().OP_ToggleKey,
     RunServiceConnection = nil,
     Color = Color3.fromRGB(255, 255, 255),
     Objects = {}
@@ -33,7 +37,7 @@ end
 
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
-    if input.KeyCode == Chams.ToggleKey or Enum.KeyCode.F3 then
+    if input.KeyCode == Chams.ToggleKey then
         Chams.Enabled = not Chams.Enabled
     end
 end)
