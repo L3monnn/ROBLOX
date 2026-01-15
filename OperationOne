@@ -1,0 +1,135 @@
+if not cloneref then cloneref = function(...) return ... end end
+
+local UserInputService = cloneref(game:GetService("UserInputService"))
+local RunService = cloneref(game:GetService("RunService"))
+local CoreGui = cloneref(game:GetService("CoreGui"))
+
+local ViewmodelsFolder = workspace:WaitForChild("Viewmodels")
+
+local Chams = {
+    Enabled = false,
+    Folder = nil,
+    ToggleKey = getgenv().OP_ToggleKey or Enum.KeyCode.F3,
+    RunServiceConnection = nil,
+    Color = Color3.fromRGB(255, 255, 255),
+    Objects = {}
+}
+
+getgenv().OP_Terminate = function()
+    if Chams then
+        Chams:Terminate()
+    end
+
+    getgenv().OP_Terminate = nil
+    getgenv().OP_Toggle = nil
+    getgenv().OP_ToggleKey = nil
+end
+
+getgenv().OP_Toggle = function(state)
+    if Chams then
+        Chams:Set(state or not Chams.Enabled)
+    end
+end
+
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    if input.KeyCode == Chams.ToggleKey or Enum.KeyCode.F3 then
+        Chams.Enabled = not Chams.Enabled
+    end
+end)
+
+-- Get player from viewmodel path
+local function validateViewmodel(model)
+    local highlight = model:FindFirstChildWhichIsA("Highlight")
+    if highlight and highlight.FillColor and highlight.FillColor == Color3.fromRGB(150, 0, 0) then
+        return true
+    else
+        return false
+    end
+end
+
+-- Apply highlight to a viewmodel
+function Chams:Apply(viewmodel)
+    if not self.Enabled then return end
+    if self.Objects[viewmodel] then return end
+
+    local highlight = Instance.new("Highlight")
+    highlight.Name = viewmodel.Name .. "_Chams"
+    highlight.FillColor = self.Color
+    highlight.OutlineColor = self.Color
+    highlight.FillTransparency = 1
+    highlight.OutlineTransparency = 0.5
+    highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+    highlight.Parent = self.Folder
+    highlight.Adornee = viewmodel
+
+    self.Objects[viewmodel] = highlight
+end
+
+-- Remove highlight
+function Chams:Remove(viewmodel)
+    if self.Objects[viewmodel] then
+        self.Objects[viewmodel]:Destroy()
+        self.Objects[viewmodel] = nil
+    end
+end
+
+-- Init
+function Chams:Start()
+    local Folder = Instance.new("Folder")
+    Folder.Name = "Chams_Objects"
+    Folder.Parent = CoreGui
+
+    self.Folder = Folder
+
+    if self.RunServiceConnection then
+        self.RunServiceConnection:Disconnect()
+        self.RunServiceConnection = nil
+    end
+
+    self.RunServiceConnection = RunService.RenderStepped:Connect(function()
+        if not self.Enabled then
+            for viewmodel, _ in pairs(self.Objects) do
+                self:Remove(viewmodel)
+            end
+            return
+        end
+
+        for _, model in pairs(ViewmodelsFolder:GetChildren()) do
+            if model.Name ~= "Viewmodel" then continue end
+            if self.Objects[model] then continue end
+            if not validateViewmodel(model) then continue end
+            self:Apply(model)
+        end
+
+        for viewmodel, _ in pairs(self.Objects) do
+            if not viewmodel or viewmodel.Parent ~= ViewmodelsFolder then
+                self:Remove(viewmodel)
+            end
+        end
+    end)
+end
+
+function Chams:Terminate()
+    if self.RunServiceConnection then
+        self.RunServiceConnection:Disconnect()
+    end
+
+    for viewmodel, _ in pairs(self.Objects) do
+        self:Remove(viewmodel)
+    end
+
+    if self.Folder then
+        self.Folder:Destroy()
+    end
+
+    self = nil
+end
+
+function Chams:Set(state)
+    self.Enabled = state
+end
+
+Chams:Start()
+
+return
