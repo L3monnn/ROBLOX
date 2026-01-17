@@ -1,35 +1,44 @@
-if not cloneref then cloneref = function(...) return ... end end
+if getgenv().Project_OP ~= nil then
+    if getgenv().Project_OP.Terminate then
+        getgenv().Project_OP.Terminate(true)
+    end
 
+    if not getgenv().Project_OP.ToggleKey or getgenv().Project_OP.ToggleKey == Enum.KeyCode.Unknown then
+        getgenv().Project_OP.ToggleKey = Enum.KeyCode.F3
+    end
+
+    getgenv().Project_OP = {ToggleKey = getgenv().Project_OP.ToggleKey}
+
+    queue_on_teleport("https://raw.githubusercontent.com/L3monnn/ROBLOX/refs/heads/main/OperationOne")
+end
+
+if not cloneref then cloneref = function(...) return ... end end
 local UserInputService = cloneref(game:GetService("UserInputService"))
 local RunService = cloneref(game:GetService("RunService"))
 local CoreGui = cloneref(game:GetService("CoreGui"))
 
 local ViewmodelsFolder = workspace:WaitForChild("Viewmodels")
 
-if not getgenv().OP_ToggleKey or getgenv().OP_ToggleKey == Enum.KeyCode.Unknown then
-    getgenv().OP_ToggleKey = Enum.KeyCode.F3
-end
-
 local Chams = {
     Enabled = false,
     Folder = nil,
-    ToggleKey = getgenv().OP_ToggleKey,
+    ToggleKey = getgenv().Project_OP.ToggleKey,
     RunServiceConnection = nil,
     Color = Color3.fromRGB(255, 255, 255),
     Objects = {}
 }
 
-getgenv().OP_Terminate = function()
+getgenv().Project_OP.Terminate = function(reloading)
     if Chams then
         Chams:Terminate()
     end
 
-    getgenv().OP_Terminate = nil
-    getgenv().OP_Toggle = nil
-    getgenv().OP_ToggleKey = nil
+    if not reloading then
+        getgenv().Project_OP = nil
+    end
 end
 
-getgenv().OP_Toggle = function(state)
+getgenv().Project_OP.Toggle = function(state)
     if Chams then
         Chams:Set(state or not Chams.Enabled)
     end
@@ -45,11 +54,16 @@ end)
 -- Get player from viewmodel path
 local function validateViewmodel(model)
     local highlight = model:FindFirstChildWhichIsA("Highlight")
-    if highlight and highlight.FillColor and highlight.FillColor == Color3.fromRGB(150, 0, 0) then
+
+    if highlight then
+        if highlight.FillColor == Color3.fromRGB(150, 0, 0) then
+            return true
+        end
+    elseif model:FindFirstChild("head") and model:FindFirstChild("torso") then
         return true
-    else
-        return false
     end
+
+    return false
 end
 
 -- Apply highlight to a viewmodel
