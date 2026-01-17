@@ -34,7 +34,7 @@ getgenv().OP_Toggle = function(state)
     end
 end
 
-queue_on_teleport("https://raw.githubusercontent.com/L3monnn/ROBLOX/refs/heads/main/OperationOne")
+queue_on_teleport(game:HttpGet("https://raw.githubusercontent.com/L3monnn/ROBLOX/refs/heads/main/OperationOne"))
 
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
