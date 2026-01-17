@@ -1,17 +1,3 @@
-if getgenv().Project_OP ~= nil then
-    if getgenv().Project_OP.Terminate then
-        getgenv().Project_OP.Terminate(true)
-    end
-
-    if not getgenv().Project_OP.ToggleKey or getgenv().Project_OP.ToggleKey == Enum.KeyCode.Unknown then
-        getgenv().Project_OP.ToggleKey = Enum.KeyCode.F3
-    end
-
-    getgenv().Project_OP = {ToggleKey = getgenv().Project_OP.ToggleKey}
-
-    queue_on_teleport("https://raw.githubusercontent.com/L3monnn/ROBLOX/refs/heads/main/OperationOne")
-end
-
 if not cloneref then cloneref = function(...) return ... end end
 local UserInputService = cloneref(game:GetService("UserInputService"))
 local RunService = cloneref(game:GetService("RunService"))
@@ -19,30 +5,36 @@ local CoreGui = cloneref(game:GetService("CoreGui"))
 
 local ViewmodelsFolder = workspace:WaitForChild("Viewmodels")
 
+if not getgenv().OP_ToggleKey or getgenv().OP_ToggleKey == Enum.KeyCode.Unknown then
+    getgenv().OP_ToggleKey = Enum.KeyCode.F3
+end
+
 local Chams = {
     Enabled = false,
     Folder = nil,
-    ToggleKey = getgenv().Project_OP.ToggleKey,
+    ToggleKey = getgenv().OP_ToggleKey,
     RunServiceConnection = nil,
     Color = Color3.fromRGB(255, 255, 255),
     Objects = {}
 }
 
-getgenv().Project_OP.Terminate = function(reloading)
+getgenv().OP_Terminate = function()
     if Chams then
         Chams:Terminate()
     end
 
-    if not reloading then
-        getgenv().Project_OP = nil
-    end
+    getgenv().OP_Terminate = nil
+    getgenv().OP_Toggle = nil
+    getgenv().OP_ToggleKey = nil
 end
 
-getgenv().Project_OP.Toggle = function(state)
+getgenv().OP_Toggle = function(state)
     if Chams then
         Chams:Set(state or not Chams.Enabled)
     end
 end
+
+queue_on_teleport("https://raw.githubusercontent.com/L3monnn/ROBLOX/refs/heads/main/OperationOne")
 
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
@@ -150,4 +142,4 @@ end
 
 Chams:Start()
 
-return
+return Chams
