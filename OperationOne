@@ -45,7 +45,7 @@ end)
 
 -- Get player from viewmodel path
 local function validateViewmodel(model)
-    local highlight = model:FindFirstChildWhichIsA("Highlight")
+    local highlight = false
 
     if highlight then
         if highlight.FillColor == Color3.fromRGB(150, 0, 0) then
