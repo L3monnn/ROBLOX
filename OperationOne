@@ -1,5 +1,4 @@
 if not cloneref then cloneref = function(...) return ... end end
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UserInputService = cloneref(game:GetService("UserInputService"))
 local RunService = cloneref(game:GetService("RunService"))
 local CoreGui = cloneref(game:GetService("CoreGui"))
@@ -49,7 +48,7 @@ if not autoexecute then
     queue_on_teleport(game:HttpGet("https://raw.githubusercontent.com/L3monnn/ROBLOX/refs/heads/main/OperationOne"))
 end
 
-local InputBeganConnection = UserInputService.InputBegan:Connect(function(input, gameProcessed)
+Chams.InputBeganConnection = UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
     if input.KeyCode == Chams.ToggleKey then
         Chams.Enabled = not Chams.Enabled
@@ -128,7 +127,15 @@ function Chams:Start()
         for viewmodel, _ in pairs(self.Objects) do
             if not viewmodel or viewmodel.Parent ~= ViewmodelsFolder then
                 self:Remove(viewmodel)
+                continue
             end
+
+            local highlight = self.Objects[viewmodel]
+            local time = tick() * 2
+            local r = (math.sin(time + 0) + 1) / 2
+            local g = (math.sin(time + 2) + 1) / 2  
+            local b = (math.sin(time + 4) + 1) / 2
+            highlight.OutlineColor = Color3.new(r, g, b)
         end
     end)
 end
