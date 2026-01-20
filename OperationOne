@@ -1,12 +1,18 @@
 if not cloneref then cloneref = function(...) return ... end end
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UserInputService = cloneref(game:GetService("UserInputService"))
 local RunService = cloneref(game:GetService("RunService"))
 local CoreGui = cloneref(game:GetService("CoreGui"))
 
 local ViewmodelsFolder = workspace:WaitForChild("Viewmodels")
+local autoexecute = true
 
 if not getgenv().OP_ToggleKey or getgenv().OP_ToggleKey == Enum.KeyCode.Unknown then
     getgenv().OP_ToggleKey = Enum.KeyCode.F3
+end
+
+if getgenv().OP_Terminate then
+    getgenv().OP_Terminate(true)
 end
 
 local Chams = {
@@ -14,18 +20,23 @@ local Chams = {
     Folder = nil,
     ToggleKey = getgenv().OP_ToggleKey,
     RunServiceConnection = nil,
+    InputBeganConnection = nil,
     Color = Color3.fromRGB(255, 255, 255),
     Objects = {}
 }
 
-getgenv().OP_Terminate = function()
+getgenv().OP_Terminate = function(reExecuting)
     if Chams then
         Chams:Terminate()
     end
 
     getgenv().OP_Terminate = nil
     getgenv().OP_Toggle = nil
-    getgenv().OP_ToggleKey = nil
+
+    if not reExecuting then 
+        autoexecute = false
+        getgenv().OP_ToggleKey = nil
+    end
 end
 
 getgenv().OP_Toggle = function(state)
@@ -34,9 +45,11 @@ getgenv().OP_Toggle = function(state)
     end
 end
 
-queue_on_teleport(game:HttpGet("https://raw.githubusercontent.com/L3monnn/ROBLOX/refs/heads/main/OperationOne"))
+if not autoexecute then 
+    queue_on_teleport(game:HttpGet("https://raw.githubusercontent.com/L3monnn/ROBLOX/refs/heads/main/OperationOne"))
+end
 
-UserInputService.InputBegan:Connect(function(input, gameProcessed)
+local InputBeganConnection = UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
     if input.KeyCode == Chams.ToggleKey then
         Chams.Enabled = not Chams.Enabled
@@ -45,10 +58,10 @@ end)
 
 -- Get player from viewmodel path
 local function validateViewmodel(model)
-    local highlight = false
+    local highlight = model:FindFirstChildWhichIsA("Highlight")
 
     if highlight then
-        if highlight.FillColor == Color3.fromRGB(150, 0, 0) then
+        if highlight.FillColor ~= Color3.fromRGB(0, 150, 0) then
             return true
         end
     elseif model:FindFirstChild("head") and model:FindFirstChild("torso") then
@@ -123,6 +136,10 @@ end
 function Chams:Terminate()
     if self.RunServiceConnection then
         self.RunServiceConnection:Disconnect()
+    end
+
+    if self.InputBeganConnection then
+        self.InputBeganConnection:Disconnect()
     end
 
     for viewmodel, _ in pairs(self.Objects) do
