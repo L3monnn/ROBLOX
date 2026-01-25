@@ -2,8 +2,9 @@ if not cloneref then cloneref = function(...) return ... end end
 local UserInputService = cloneref(game:GetService("UserInputService"))
 local RunService = cloneref(game:GetService("RunService"))
 local CoreGui = cloneref(game:GetService("CoreGui"))
+local Workspace = cloneref(game:GetService("Workspace"))
 
-local ViewmodelsFolder = workspace:WaitForChild("Viewmodels")
+local ViewmodelsFolder = Workspace:WaitForChild("Viewmodels")
 local autoexecute = true
 
 if not getgenv().OP_ToggleKey or getgenv().OP_ToggleKey == Enum.KeyCode.Unknown then
@@ -44,20 +45,20 @@ getgenv().OP_Toggle = function(state)
     end
 end
 
-if autoexecute then 
+if not autoexecute then 
     queue_on_teleport(game:HttpGet("https://raw.githubusercontent.com/L3monnn/ROBLOX/refs/heads/main/OperationOne"))
 end
-
-Chams.InputBeganConnection = UserInputService.InputBegan:Connect(function(input, gameProcessed)
-    if gameProcessed then return end
-    if input.KeyCode == Chams.ToggleKey then
-        Chams.Enabled = not Chams.Enabled
-    end
-end)
 
 -- Get player from viewmodel path
 local function validateViewmodel(model)
     local highlight = model:FindFirstChildWhichIsA("Highlight")
+    
+    for _, value in pairs(Workspace:GetChildren()) do
+        if value:IsA("Highlight") and value.Adornee == model then
+            highlight = value
+            break
+        end
+    end
 
     if highlight then
         if highlight.OutlineColor ~= Color3.fromRGB(0, 150, 0) then
@@ -136,6 +137,18 @@ function Chams:Start()
             local g = (math.sin(time + 2) + 1) / 2  
             local b = (math.sin(time + 4) + 1) / 2
             highlight.OutlineColor = Color3.new(r, g, b)
+        end
+    end)
+
+    if self.InputBeganConnection then
+        self.InputBeganConnection:Disconnect()
+        self.InputBeganConnection = nil
+    end
+
+    self.InputBeganConnection = UserInputService.InputBegan:Connect(function(input, gameProcessed)
+        if gameProcessed then return end
+        if input.KeyCode == self.ToggleKey then
+            self.Enabled = not self.Enabled
         end
     end)
 end
