@@ -45,7 +45,7 @@ getgenv().OP_Toggle = function(state)
     end
 end
 
-if not autoexecute then 
+if autoexecute then 
     queue_on_teleport(game:HttpGet("https://raw.githubusercontent.com/L3monnn/ROBLOX/refs/heads/main/OperationOne"))
 end
 
