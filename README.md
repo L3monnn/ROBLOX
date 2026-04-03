@@ -9,7 +9,7 @@ I dont regularly check issues or pull requests
 **Copyright © 2026 L3monnn**
 
 ### 🛡️ 1. Scope of Use
-This repository contains both **Source Available** (readable) and **Obfuscated** scripts. By using this software, you agree to the following terms:
+By using this software, you agree to the following terms:
 
 *   **Personal & Educational Only:** Permission is granted for personal, non-commercial, and educational purposes.
 *   **No Commercial Use:** You may not use this software for any for-profit activity, commercial services, or paid products.
