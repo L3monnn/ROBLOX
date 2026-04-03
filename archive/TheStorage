@@ -1,0 +1,324 @@
+local Library = loadstring(Game:HttpGet("https://raw.githubusercontent.com/bloodball/-back-ups-for-libs/main/wizard"))()
+
+local MainWindow = Library:NewWindow("Lemon V1.5.4")
+
+local MainSection = MainWindow:NewSection("Main")
+local BankSection = MainWindow:NewSection("Bank")
+local ExtraSection = MainWindow:NewSection("Extra")
+
+getgenv().AutoFarm = false
+getgenv().KeyAutoFarm = false
+getgenv().ItemNumber = 1
+getgenv().NumberWord = nil
+getgenv().AmountBank = nil
+getgenv().BaseFound = nil
+getgenv().SafeMode = false
+getgenv().ItemToFarm = {}
+
+local player = game.Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local backpack = player:FindFirstChild("Backpack")
+local humanoid = character:FindFirstChildOfClass("Humanoid")
+
+local storages = workspace.Storages
+
+local function StorageAutoFarm()
+    while AutoFarm == true do
+        for _, storage in pairs(storages:GetChildren()) do
+			character.HumanoidRootPart.CFrame = CFrame.new(0, 105.5, 0)
+			local continueFarming = false
+            if SafeMode == true and humanoid.Health <= 50 then
+                repeat wait() until humanoid.Health >= 51
+                continueFarming = true
+            elseif SafeMode == true and humanoid.Health >= 51 then
+                continueFarming = true
+            elseif SafeMode == false then
+                continueFarming = true
+            end
+            if continueFarming == true then
+				if AutoFarm == false then break end
+					if storage:IsA("Model") then
+						local handle = storage.Door:FindFirstChild("Handle")
+						if handle then
+							local TeleportToo = CFrame.new(handle.CFrame.X, handle.CFrame.Y + 8, handle.CFrame.Z)
+							character.HumanoidRootPart.CFrame = TeleportToo
+							local prompt = handle:FindFirstChildWhichIsA("ProximityPrompt")
+							if prompt then
+							task.wait(0.5)
+							fireproximityprompt(prompt)
+							task.wait(1)
+							character.HumanoidRootPart.CFrame = CFrame.new(0, 105.5, 0)
+								local contents = storage:FindFirstChild("Contents")
+								if contents then
+									local loot = contents:FindFirstChild("Loot")
+									if loot then
+										for _, item in pairs(loot:GetDescendants()) do
+											if item:IsA("ProximityPrompt") then
+												if item.Parent:IsA("Part") or item.Parent:IsA("MeshPart") then
+													character.HumanoidRootPart.CFrame = item.Parent.CFrame
+													local Itemprompt = item
+													if Itemprompt then
+														wait(0.2)
+														fireproximityprompt(Itemprompt)
+														wait(0.2)
+														character.HumanoidRootPart.CFrame = CFrame.new(0, 105.5, 0)
+														wait(0.2)
+													end
+												elseif item.Parent:IsA("Model") then
+													character.HumanoidRootPart.CFrame = item.Parent.PrimaryPart.CFrame
+													local Itemprompt = item
+													if prompt then
+														wait(0.2)
+														fireproximityprompt(Itemprompt)
+														wait(0.2)
+														character.HumanoidRootPart.CFrame = CFrame.new(0, 105.5, 0)
+														wait(0.2)
+													end
+												end
+											end
+										end
+									end
+								end
+							end
+						end
+					end
+			end
+        end
+        wait()
+    end
+end
+
+local function equipSkeletonKey()
+    if character and backpack then
+        for _, item in pairs(backpack:GetChildren()) do
+            if item:IsA("Tool") and string.find(item.Name, "Skeleton Key") then
+                local skeletonKeyInCharacter = character:FindFirstChild(item.Name)
+                local skeletonKeyInBackpack = item
+
+                if not skeletonKeyInCharacter and skeletonKeyInBackpack and humanoid then
+                    humanoid:EquipTool(skeletonKeyInBackpack)
+                elseif skeletonKeyInCharacter then
+                    print("Skeleton Key is already equipped.")
+                else
+                    print("Skeleton Key not found in the backpack.")
+                end
+            end
+        end
+    end
+end
+
+local function KeyStorageAutoFarm()
+    while KeyAutoFarm == true do
+        for _, storage in pairs(storages:GetChildren()) do
+            character.HumanoidRootPart.CFrame = CFrame.new(0, 105.5, 0)
+			local continueFarming = false
+            if SafeMode == true and humanoid.Health <= 50 then
+                repeat wait() until humanoid.Health >= 51
+                continueFarming = true
+            elseif SafeMode == true and humanoid.Health >= 51 then
+                continueFarming = true
+            elseif SafeMode == false then
+                continueFarming = true
+            end
+            if continueFarming == true then
+				if KeyAutoFarm == false then break end
+					if storage:IsA("Model") then
+						local handle = storage.Door:FindFirstChild("Handle")
+						if handle.Parent:FindFirstChild("Lock") and storage.Barrier.CanCollide == true and handle.Parent.Lock.Transparency == 0 then
+							local TeleportTo = CFrame.new(handle.CFrame.X, handle.CFrame.Y + 8, handle.CFrame.Z)
+							character.HumanoidRootPart.CFrame = TeleportTo
+							local prompt = handle:FindFirstChildWhichIsA("ProximityPrompt")
+							if prompt then
+							equipSkeletonKey()
+							task.wait(0.5)
+							fireproximityprompt(prompt)
+							task.wait(1)
+								local contents = storage:FindFirstChild("Contents")
+								if contents then
+									local objects = contents:FindFirstChild("Objects")
+									if objects then
+										for _, item in pairs(objects:GetDescendants()) do
+											if item:IsA("ProximityPrompt") then
+												if item.Parent:IsA("Part") or item.Parent:IsA("MeshPart") then
+													character.HumanoidRootPart.CFrame = item.Parent.CFrame
+													local Itemprompt = item
+													if Itemprompt then
+													wait(0.3)
+													fireproximityprompt(Itemprompt)
+													wait(0.3)
+													character.HumanoidRootPart.CFrame = CFrame.new(0, 105.5, 0)
+													wait(0.3)
+													end
+												end
+											end
+										end
+									end
+								end
+							end
+						end
+					end
+			end
+        end
+        wait()
+    end
+end
+
+local function SafePlace()
+    if game.Workspace:FindFirstChild("SkyPlaceThatIsCool") then
+        print("Safe Spot is already there!")
+    else
+        local skyPart = Instance.new("Part")
+
+        skyPart.Name = "SkyPlaceThatIsCool"
+        skyPart.Size = Vector3.new(50, 1, 50) -- Size of the part
+        skyPart.Position = Vector3.new(0, 100, 0) -- Position in the sky
+        skyPart.Anchored = true -- Make sure the part doesn't fall
+        skyPart.BrickColor = BrickColor.new("Bright blue") -- Color of the part
+        skyPart.Transparency = 0.4
+        skyPart.Parent = game.Workspace
+    end
+end
+
+SafePlace()
+
+local function NumbersToWords(ItemNumber)
+    ItemNumber = tonumber(ItemNumber)
+    NumberWord = ""
+
+    if ItemNumber then
+        if ItemNumber == 1 then
+            NumberWord = "One"
+        elseif ItemNumber == 2 then
+            NumberWord = "Two"
+        elseif ItemNumber == 3 then
+            NumberWord = "Three"
+        elseif ItemNumber == 4 then
+            NumberWord = "Four"
+        elseif ItemNumber == 5 then
+            NumberWord = "Five"
+        elseif ItemNumber == 6 then
+            NumberWord = "Six"
+        elseif ItemNumber == 7 then
+            NumberWord = "Seven"
+        elseif ItemNumber == 8 then
+            NumberWord = "Eight"
+        elseif ItemNumber == 9 then
+            NumberWord = "Nine"
+        elseif ItemNumber == 10 then
+            NumberWord = "Ten"
+        elseif ItemNumber == 11 then
+            NumberWord = "Eleven"
+        elseif ItemNumber == 12 then
+            NumberWord = "Twelve"
+        else
+            NumberWord = "Invalid number"
+        end
+    else
+        NumberWord = "Invalid input"
+    end
+
+    return NumberWord
+end
+
+MainSection:CreateToggle("AutoFarm", function(value)
+    AutoFarm = value
+    StorageAutoFarm()
+end)
+
+MainSection:CreateToggle("Key AutoFarm", function(value)
+    KeyAutoFarm = value
+    KeyStorageAutoFarm()
+end)
+
+MainSection:CreateButton("Safe Spot", function()
+    character.HumanoidRootPart.CFrame = CFrame.new(0, 105.5, 0)
+end)
+
+MainSection:CreateButton("TP Base (activate in extra)", function()
+    if BaseFound ~= nil then
+        character.HumanoidRootPart.CFrame = BaseFound
+    else
+        print("Activate in Extra Tab")
+    end
+end)
+
+BankSection:CreateButton("Bank Item in Hand", function()
+    local args = {
+        [1] = "StoreBank",
+        [2] = NumberWord,
+        [3] = AmountBank
+    }
+    
+    game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvent"):FireServer(unpack(args))  
+end)
+
+BankSection:CreateButton("Withdraw From Bank", function()
+    local args = {
+        [1] = "TakeBank",
+        [2] = NumberWord,
+        [3] = AmountBank
+    }
+    
+    game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvent"):FireServer(unpack(args))    
+end)
+
+BankSection:CreateTextbox("Slot 1 - 12", function(text)
+    ItemNumber = text
+    NumberWord = NumbersToWords(ItemNumber)
+end)
+
+BankSection:CreateTextbox("Amount", function(text)
+    AmountBank = text
+end)
+
+ExtraSection:CreateToggle("Safe Mode", function(value)
+    SafeMode = value
+end)
+
+ExtraSection:CreateButton("Delete Roof", function()
+    local Roof = workspace.MapObjects.Roof
+    if Roof then
+        Roof.Transparency = 1
+        Roof.CanCollide = false
+    end
+
+    local ForceFieldFolder = workspace.Map.Parts.Model
+
+    for _, model in pairs (ForceFieldFolder:GetChildren()) do
+        for i, forcefield in pairs(model:GetChildren()) do
+            if forcefield:IsA("Part") then
+                if forcefield.Name == "Forcefield" then
+                    forcefield.CanCollide = false
+                    print("Removed Roof")
+                    break
+                end
+            end
+            task.wait(0.00001)
+        end
+    end
+end)
+
+ExtraSection:CreateButton("Find Base (takes a second)", function()
+    if BaseFound == nil then
+        for _, storage in pairs(storages:GetChildren()) do
+            for _, room in pairs(storage:GetChildren()) do
+                if room.Name == "ClaimedStorage" then
+                    if room.Gui.Label.Text == game.Players.LocalPlayer.Name.."'s Unit" then
+                        BaseFound = room.Parent.Contents.BoundingBox.CFrame
+                        print("Base Found")
+                        break
+                    end
+                end
+                task.wait()
+            end
+        end
+    end
+end)
+
+ExtraSection:CreateButton("Infinite Yield", function()
+    loadstring(game:HttpGet('https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source'))()
+end)
+
+ExtraSection:CreateButton("Debug", function()
+    loadstring(game:HttpGet('https://raw.githubusercontent.com/L3monnn/RobloxScripts/Games/TheStorage'))()
+end)
