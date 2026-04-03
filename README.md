@@ -8,8 +8,6 @@ I dont regularly check issues or pull requests
 # 📜 Personal Use & Attribution License
 **Copyright © 2026 L3monnn**
 
---
-
 ### 🛡️ 1. Scope of Use
 This repository contains both **Source Available** (readable) and **Obfuscated** scripts. By using this software, you agree to the following terms:
 
@@ -22,13 +20,11 @@ You are permitted to redistribute these scripts, provided that:
 *   **Original Link:** You must provide a clear, clickable link to this original GitHub repository.
 
 ### 📱 3. Social Media Requirements
-If you feature, showcase, or demonstrate this software on social media platforms (e.g., **X/Twitter, TikTok, YouTube, Instagram**), you must tag or credit the author or link this repository:
-> **Author:** @[YOUR_HANDLE]
+If you feature, showcase, or demonstrate this software on social media platforms (e.g., **X/Twitter, TikTok, YouTube, Instagram**), you must credit the author or link this repository:
+> **Author:** @L3monnn
 > **Repository:** https://github.com/L3monnn/ROBLOX
 
 ### ⚖️ 4. No Warranty (AS-IS)
 THE SOFTWARE IS PROVIDED **"AS IS"**, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
---
 
 *Failure to comply with these terms may result in a DMCA takedown request.*
