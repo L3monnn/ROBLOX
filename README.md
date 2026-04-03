@@ -1,5 +1,4 @@
 - 👋 Hi, I’m @L3monnn
-- 👀 I’m interested in making roblox scripts
-- 🌱 I’m currently learning how to make roblox scripts
-- 💞️ I’m looking to collaborate on making roblox scripts
-- 📫 To reach me, add me on discord, my user is .lemonnn
+
+I will be publicly posting my Roblox scripts in the repo. Most of them should be open-source, enjoy! 💞️
+I dont regularly check issues or pull requests
