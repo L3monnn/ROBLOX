@@ -1,0 +1,165 @@
+-- RAISE A CHILD :)
+local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/shlexware/Orion/main/source')))()
+local Window = OrionLib:MakeWindow({Name = "RAISE A CHILD :)", HidePremium = false, SaveConfig = false, ConfigFolder = "OrionTest"})
+-- Variables
+getgenv().Shmimble = false;
+getgenv().autoCoin = false;
+-- Functions
+function Shmimble()
+	spawn(function()
+		while getgenv().Shmimble == true do
+			local p = game.Players.LocalPlayer.Character.HumanoidRootPart
+			local s = game.workspace.Dabloons.Dabloons
+			wait()
+			p.CFrame = s.CFrame
+			wait(1)
+			firetouchinterest(workspace.Shmimble.Dabloons.Dabloons)
+			wait(1)
+			p.CFrame = s.CFrame
+			wait(1)
+			firetouchinterest(workspace.Shmimble.Dabloons.Dabloons)
+		end
+	end)
+end
+
+function autoCoin()
+	spawn(function()
+		while getgenv().autoCoin == true do
+			wait(0.1)
+			for i,v in pairs(workspace.Dabloons:GetDescendants()) do
+				if v:IsA("UnionOperation") then
+				v.CFrame = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame
+				wait(0.1)
+				end
+			end
+		end
+	end)
+end
+-- Tabs
+local HomeTab = Window:MakeTab({
+	Name = "Home",
+	Icon = "rbxassetid://4483345998",
+	PremiumOnly = false
+})
+
+local FarmTab = Window:MakeTab({
+	Name = "Farm",
+	Icon = "rbxassetid://4483345998",
+	PremiumOnly = false
+})
+
+local TeleportTab = Window:MakeTab({
+	Name = "Teleports",
+	Icon = "rbxassetid://4483345998",
+	PremiumOnly = false
+})
+-- Sections
+local CreditsSection = HomeTab:AddSection({
+	Name = "Credits"
+})
+
+local ScriptsSection = HomeTab:AddSection({
+	Name = "Scripts"
+})
+
+local DebugSection = HomeTab:AddSection({
+	Name = "Debug"
+})
+
+local CoinFarmSection = FarmTab:AddSection({
+	Name = "Coin Farm"
+})
+
+local FarmMethodSection = FarmTab:AddSection({
+	Name = "Farm Method"
+})
+-- Notifications
+OrionLib:MakeNotification({
+	Name = "Imporant!",
+	Content = "Script made by .lemonnn",
+	Image = "rbxassetid://4483345998",
+	Time = 5
+})
+-- labels
+HomeTab = CreditsSection:AddLabel("Script Made by .lemonnn")
+FarmTab = CoinFarmSection:AddLabel("Caution! These might be buggy")
+FarmTab = CoinFarmSection:AddLabel("TP all Coins will lag for 1 - 10 seconds")
+TeleportTab:AddLabel("Nothing hear yet!")
+-- Buttons
+HomeTab = ScriptsSection:AddButton({
+	Name = "Infinite Yield",
+	Callback = function()
+		loadstring(game:HttpGet('https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source'))()
+      		print("Infinite Yield Executed")
+  	end    
+})
+HomeTab = DebugSection:AddButton({
+	Name = "Rejoin Server",
+	Callback = function()
+		local Players = game:GetService("Players")
+		local TeleportService = game:GetService("TeleportService")
+		if #Players:GetPlayers() <= 1 then
+			TeleportService:Teleport(game.PlaceId, Players.LocalPlayer)
+		else
+			TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, Players.LocalPlayer)
+		end
+      		print("Rejoining...")
+  	end    
+})
+HomeTab = DebugSection:AddButton({
+	Name = "ServerHop",
+	Callback = function()
+		local Http = game:GetService("HttpService") 
+		local TPS = game:GetService("TeleportService") 
+		local Api = "https://games.roblox.com/v1/games/" 
+		local _place = game.PlaceId 
+		local _servers = Api.._place.."/servers/Public?sortOrder=Asc&limit=100" 
+		function ListServers(cursor) local Raw = game:HttpGet(_servers .. ((cursor and "&cursor="..cursor) or "")) return Http:JSONDecode(Raw) end 
+		local Server, Next; repeat local Servers = ListServers(Next) Server = Servers.data[1] Next = Servers.nextPageCursor until Server TPS:TeleportToPlaceInstance(_place,Server.id,game.Players.LocalPlayer)
+	end
+})
+HomeTab = DebugSection:AddButton({
+	Name = "Destroy Gui",
+	Callback = function()
+        OrionLib:Destroy()
+      	print("Gui Destroyed")
+  	end    
+})
+FarmTab = CoinFarmSection:AddButton({
+	Name = "TP all coins",
+	Callback = function()
+		for i,v in pairs(workspace.Dabloons:GetDescendants()) do
+			if v:IsA("UnionOperation") then
+			v.CFrame = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame
+			end
+		end
+	end
+})
+-- Toggles
+FarmTab = CoinFarmSection:AddToggle({
+	Name = "Loop TP all coins",
+	Default = false,
+	Callback = function(Value)
+		getgenv().autoCoin = Value
+		print("Loop TP all coins, Value")
+		if Value then
+			autoCoin();
+		end
+	end
+})
+
+FarmTab = FarmMethodSection:AddToggle({
+	Name = "Shmimble Auto Farm",
+	Default = false,
+	Callback = function(Value)
+		getgenv().Shmimble = Value
+		print('Shmimble Auto Farm, Value')
+		if Value then
+			Shmimble();
+		end
+	end
+})
+
+OrionLib:Init()
+
+-- if game.PlaceId == 14067145814 then
